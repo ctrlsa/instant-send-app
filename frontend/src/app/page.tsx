@@ -4,27 +4,19 @@ import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Wallet } from "@/utils/wallet";
 import { useInitData } from "@telegram-apps/sdk-react";
-import { Send, User } from "lucide-react";
+import { User } from "lucide-react";
 import instance from "@/utils/axios";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import Contacts from "@/components/Contacts";
 import WalletDetails from "@/components/WalletDetails";
 import WalletGenerator from "@/components/WalletGenerator";
-import EthereumWallet from "@/components/EthereumWallet";
 import { useWallet } from "@/contexts/WalletContext";
 
 export default function Home() {
   const initData = useInitData();
   const [contacts, setContacts] = useState([]);
-  const { walletEthereum, walletSolana, setWalletEthereum, setWalletSolana } =
-    useWallet();
+  const { walletSolana, setWalletSolana } = useWallet();
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined;
@@ -79,67 +71,21 @@ export default function Home() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Crypto Wallets</CardTitle>
+            <CardTitle>Solana Wallet</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="Ethereum" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="Ethereum">Ethereum</TabsTrigger>
-                <TabsTrigger value="Solana">Solana</TabsTrigger>
-              </TabsList>
-
-              {(["Ethereum", "Solana"] as const).map((network) => {
-                const wallet =
-                  network === "Ethereum" ? walletEthereum : walletSolana;
-                return (
-                  <TabsContent
-                    key={network}
-                    value={network}
-                    className="space-y-4"
-                  >
-                    <WalletGenerator
-                      wallet={wallet}
-                      network={network}
-                      onWalletCreated={(wallet: Wallet) =>
-                        network === "Ethereum"
-                          ? setWalletEthereum(wallet)
-                          : setWalletSolana(wallet)
-                      }
-                    />
-                    {wallet && (
-                      <>
-                        <WalletDetails
-                          wallet={wallet}
-                          network={network}
-                          onWalletDelete={() => {
-                            network === "Ethereum"
-                              ? setWalletEthereum(null)
-                              : setWalletSolana(null);
-                          }}
-                        />
-                        {network === "Ethereum" && (
-                          <div className="mt-4 flex justify-center">
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <Send className="h-4 w-4 mr-2" />
-                                  Send Stablecoins
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent>
-                                {walletEthereum && (
-                                  <EthereumWallet wallet={walletEthereum} />
-                                )}
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </TabsContent>
-                );
-              })}
-            </Tabs>
+            <WalletGenerator
+              wallet={walletSolana}
+              onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+            />
+            {walletSolana && (
+              <>
+                <WalletDetails
+                  wallet={walletSolana}
+                  onWalletDelete={() => setWalletSolana(null)}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       </main>

@@ -14,44 +14,30 @@ import {
   validateWalletMnemonic,
 } from "../utils/wallet";
 
-// Add a new prop for network
 interface WalletGeneratorProps {
-  network: "Ethereum" | "Solana";
   wallet: Wallet | null;
   onWalletCreated: (wallet: Wallet) => void;
 }
 
 const WalletGenerator: React.FC<WalletGeneratorProps> = ({
-  network,
   wallet,
   onWalletCreated,
 }) => {
   const [mnemonicWords, setMnemonicWords] = useState<string[]>(
     Array(12).fill(" ")
   );
-  const [pathType, setPathType] = useState<string>("501"); // Default to Solana path
   const [showMnemonic, setShowMnemonic] = useState<boolean>(false);
   const [mnemonicInput, setMnemonicInput] = useState<string>("");
   const [visiblePrivateKey, setVisiblePrivateKey] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number | null>(null); // Countdown state
 
-  // Define network-specific path types and names
-  const pathTypeNames: { [key: string]: string } = {
-    "501": "Solana",
-    "60": "Ethereum",
-  };
+  // Path type specific to Solana
+  const pathType = "501";
+  const pathTypeName = "Solana";
 
-  // Set default path based on the network prop
-  useEffect(() => {
-    setPathType(network === "Ethereum" ? "60" : "501");
-  }, [network]);
-
-  const pathTypeName = pathTypeNames[pathType] || "";
-
-  // Load wallet from local storage (mnemonic is not stored anymore)
   useEffect(() => {
     setVisiblePrivateKey(false);
-  }, [network]);
+  }, []);
 
   const copyToClipboard = (content: string) => {
     navigator.clipboard.writeText(content);
@@ -113,37 +99,35 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({
           }}
         >
           <div className="flex flex-col gap-4">
-            {pathType && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.3,
-                  ease: "easeInOut",
-                }}
-                className="flex flex-col gap-4 my-12"
-              >
-                <div className="flex flex-col gap-2">
-                  <h1 className="tracking-tighter text-4xl md:text-5xl font-black">
-                    Secret Recovery Phrase for {pathTypeName}
-                  </h1>
-                  <p className="text-primary/80 font-semibold text-lg md:text-xl">
-                    Save these words in a safe place.
-                  </p>
-                </div>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <Input
-                    type="password"
-                    placeholder="Enter your secret phrase (or leave blank to generate)"
-                    onChange={(e) => setMnemonicInput(e.target.value)}
-                    value={mnemonicInput}
-                  />
-                  <Button size={"lg"} onClick={handleGenerateWallet}>
-                    {mnemonicInput ? "Add Wallet" : "Generate Wallet"}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
+              className="flex flex-col gap-4 my-12"
+            >
+              <div className="flex flex-col gap-2">
+                <h1 className="tracking-tighter text-4xl md:text-5xl font-black">
+                  Secret Recovery Phrase for {pathTypeName}
+                </h1>
+                <p className="text-primary/80 font-semibold text-lg md:text-xl">
+                  Save these words in a safe place.
+                </p>
+              </div>
+              <div className="flex flex-col md:flex-row gap-4">
+                <Input
+                  type="password"
+                  placeholder="Enter your secret phrase (or leave blank to generate)"
+                  onChange={(e) => setMnemonicInput(e.target.value)}
+                  value={mnemonicInput}
+                />
+                <Button size={"lg"} onClick={handleGenerateWallet}>
+                  {mnemonicInput ? "Add Wallet" : "Generate Wallet"}
+                </Button>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       )}

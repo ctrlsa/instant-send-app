@@ -1,4 +1,3 @@
-// src/components/WalletDetails.tsx
 "use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -24,25 +23,23 @@ import {
 } from "@/components/ui/accordion";
 
 interface WalletDetailsProps {
-  network: "Ethereum" | "Solana";
   wallet: Wallet | null;
   onWalletDelete: () => void;
 }
 
 const WalletDetails: React.FC<WalletDetailsProps> = ({
-  network,
   wallet,
   onWalletDelete,
 }) => {
   const [visiblePrivateKey, setVisiblePrivateKey] = useState(false);
 
   if (!wallet) {
-    return <p>No wallet found for {network}</p>;
+    return <p>No wallet found for Solana</p>;
   }
 
   const handleDeleteWallet = () => {
     onWalletDelete();
-    toast.success(`${network} Wallet deleted successfully!`);
+    toast.success("Solana Wallet deleted successfully!");
   };
 
   const copyToClipboard = (content: string) => {
@@ -55,7 +52,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({
       <AccordionItem value="wallet-details">
         <AccordionTrigger>
           <h2 className="tracking-tighter text-3xl md:text-2xl font-extrabold">
-            {network} Wallet
+            Solana Wallet
           </h2>
         </AccordionTrigger>
         <AccordionContent>
