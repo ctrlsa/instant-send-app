@@ -112,7 +112,7 @@ export default function WalletDetails({
                 onClick={() => copyToClipboard(wallet.privateKey, false)}
               >
                 {visiblePrivateKey
-                  ? wallet.privateKey?.slice(0, 20)
+                  ? wallet.privateKey?.slice(0, 20) + "..."
                   : "•".repeat(20)}
               </p>
               <div className="absolute top-1 right-1 space-x-1 transition-opacity duration-300">
