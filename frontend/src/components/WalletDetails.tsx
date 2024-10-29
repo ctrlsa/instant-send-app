@@ -1,7 +1,8 @@
 "use client";
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Copy } from "lucide-react";
+import { Eye, EyeOff, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -13,28 +14,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "./ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
 import { Wallet } from "@/utils/wallet";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 interface WalletDetailsProps {
   wallet: Wallet | null;
   onWalletDelete: () => void;
 }
 
-const WalletDetails: React.FC<WalletDetailsProps> = ({
+export default function WalletDetails({
   wallet,
   onWalletDelete,
-}) => {
+}: WalletDetailsProps) {
   const [visiblePrivateKey, setVisiblePrivateKey] = useState(false);
+  const [copiedPublic, setCopiedPublic] = useState(false);
+  const [copiedPrivate, setCopiedPrivate] = useState(false);
 
   if (!wallet) {
-    return <p>No wallet found for Solana</p>;
+    return (
+      <Card className="mt-4">
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground">
+            No wallet found for Solana
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   const handleDeleteWallet = () => {
@@ -42,84 +49,130 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({
     toast.success("Solana Wallet deleted successfully!");
   };
 
-  const copyToClipboard = (content: string) => {
+  const copyToClipboard = (content: string, isPublic: boolean) => {
     navigator.clipboard.writeText(content);
     toast.success("Copied to clipboard!");
+    if (isPublic) {
+      setCopiedPublic(true);
+      setTimeout(() => setCopiedPublic(false), 2000);
+    } else {
+      setCopiedPrivate(true);
+      setTimeout(() => setCopiedPrivate(false), 2000);
+    }
   };
 
   return (
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="wallet-details">
-        <AccordionTrigger>
-          <h2 className="tracking-tighter text-3xl md:text-2xl font-extrabold">
-            Solana Wallet
-          </h2>
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="flex flex-col gap-8 px-8 py-4 rounded-2xl bg-secondary/50">
-            <div
-              className="flex flex-col w-full gap-2"
-              onClick={() => copyToClipboard(wallet.publicKey)}
-            >
-              <span className="text-lg md:text-xl font-bold tracking-tighter">
-                Public Key
-              </span>
-              <p className="text-primary/80 font-medium cursor-pointer hover:text-primary transition-all duration-300 truncate">
-                {wallet.publicKey}
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold">Wallet Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-2"
+          >
+            <h3 className="text-lg font-semibold tracking-tight">Public Key</h3>
+            <div className="relative group ">
+              <p
+                className="text-sm h-10 text-muted-foreground font-medium break-all p-2 pr-16 bg-muted rounded-md transition-colors duration-300 group-hover:bg-muted/80"
+                onClick={() => copyToClipboard(wallet.publicKey, true)}
+              >
+                {wallet.publicKey?.slice(0, 16)}...
               </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className=" absolute top-1 right-1 transition-opacity duration-300"
+                onClick={() => copyToClipboard(wallet.publicKey, true)}
+              >
+                {copiedPublic ? (
+                  <Check className="h-4 w-4 " />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
             </div>
-            <div className="flex flex-col w-full gap-2">
-              <span className="text-lg md:text-xl font-bold tracking-tighter">
-                Private Key
-              </span>
-              <div className="flex justify-between w-full items-center gap-2">
-                <p
-                  onClick={() => copyToClipboard(wallet.privateKey)}
-                  className="text-primary/80 font-medium cursor-pointer hover:text-primary transition-all duration-300 truncate"
-                >
-                  {visiblePrivateKey ? wallet.privateKey : "•".repeat(12)}
-                </p>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="space-y-2"
+          >
+            <h3 className="text-lg font-semibold tracking-tight">
+              Private Key
+            </h3>
+            <div className="relative group">
+              <p
+                className="text-sm text-muted-foreground h-10 font-medium break-all p-2 pr-20 bg-muted rounded-md transition-colors duration-300 group-hover:bg-muted/80"
+                onClick={() => copyToClipboard(wallet.privateKey, false)}
+              >
+                {visiblePrivateKey
+                  ? wallet.privateKey?.slice(0, 20)
+                  : "•".repeat(20)}
+              </p>
+              <div className="absolute top-1 right-1 space-x-1 transition-opacity duration-300">
                 <Button
                   variant="ghost"
+                  size="icon"
+                  onClick={() => copyToClipboard(wallet.privateKey, false)}
+                >
+                  {copiedPrivate ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setVisiblePrivateKey(!visiblePrivateKey)}
                 >
                   {visiblePrivateKey ? (
-                    <EyeOff className="size-4" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="size-4" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </Button>
               </div>
             </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <div className="flex justify-center items-center">
-                  <Button variant="destructive">Delete Wallet</Button>
-                </div>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Are you sure you want to delete this wallet?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your wallet and keys from local storage.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteWallet}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  );
-};
+          </motion.section>
+        </div>
 
-export default WalletDetails;
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-6 flex justify-center"
+        >
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Delete Wallet</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Are you sure you want to delete this wallet?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your wallet and keys from local storage.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteWallet}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </motion.div>
+      </CardContent>
+    </Card>
+  );
+}
