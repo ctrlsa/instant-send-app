@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Contacts from "@/components/Contacts";
 import WalletDetails from "@/components/WalletDetails";
 import WalletGenerator from "@/components/WalletGenerator";
+import TokenBalances from "@/components/TokenBalances";
 import { useWallet } from "@/contexts/WalletContext";
 
 export default function Home() {
@@ -38,6 +39,7 @@ export default function Home() {
   useEffect(() => {
     if (currentUser) getContacts();
   }, [currentUser]);
+
   useEffect(() => {
     if (!walletSolana) setShowWalletDetails(true);
   }, [walletSolana]);
@@ -110,6 +112,16 @@ export default function Home() {
             <Contacts contacts={contacts} handleRefresh={getContacts} />
           </CardContent>
         </Card>
+        {/* Token Balances */}
+        {walletSolana && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <TokenBalances wallet={walletSolana} contacts={contacts} />
+          </motion.div>
+        )}
       </main>
     </motion.div>
   );
