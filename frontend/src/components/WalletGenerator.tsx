@@ -13,15 +13,18 @@ import {
   createMnemonic,
   validateWalletMnemonic,
 } from "../utils/wallet";
+import instance from "@/utils/axios";
 
 interface WalletGeneratorProps {
   wallet: Wallet | null;
   onWalletCreated: (wallet: Wallet) => void;
+  user: any;
 }
 
 const WalletGenerator: React.FC<WalletGeneratorProps> = ({
   wallet,
   onWalletCreated,
+  user,
 }) => {
   const [mnemonicWords, setMnemonicWords] = useState<string[]>(
     Array(12).fill(" ")
@@ -44,7 +47,7 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({
     toast.success("Copied to clipboard!");
   };
 
-  const handleGenerateWallet = () => {
+  const handleGenerateWallet = async () => {
     if (wallet) {
       toast.error("A wallet already exists for this network.");
       return;
@@ -65,24 +68,32 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({
     setMnemonicWords(words);
     setShowMnemonic(true); // Only show the mnemonic immediately after generation
     setCountdown(60); // Start countdown at 60 seconds
-
-    const newWallet = generateWalletFromMnemonic(pathType, mnemonic, 0); // Only 1 account (index 0)
-    if (newWallet) {
-      onWalletCreated(newWallet);
-      toast.success("Wallet generated successfully!");
-
-      // Clear mnemonic after 60 seconds
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev === 1) {
-            clearInterval(timer);
-            setMnemonicWords(Array(12).fill(" "));
-            setShowMnemonic(false);
-            return null;
-          }
-          return prev! - 1;
+    try {
+      const newWallet = generateWalletFromMnemonic(pathType, mnemonic, 0); // Only 1 account (index 0)
+      if (newWallet) {
+        onWalletCreated(newWallet);
+        await instance.post("/wallet/addWallet", {
+          id: user.id,
+          name: user.name,
+          solanaAddress: newWallet.publicKey,
         });
-      }, 1000);
+        toast.success("Wallet generated successfully!");
+
+        // Clear mnemonic after 60 seconds
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev === 1) {
+              clearInterval(timer);
+              setMnemonicWords(Array(12).fill(" "));
+              setShowMnemonic(false);
+              return null;
+            }
+            return prev! - 1;
+          });
+        }, 1000);
+      }
+    } catch (e) {
+      toast.error("Error generating wallet. Please try again.");
     }
   };
 

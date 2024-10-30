@@ -92,11 +92,13 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <WalletGenerator
+                  user={currentUser}
                   wallet={walletSolana}
                   onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
                 />
                 {walletSolana && (
                   <WalletDetails
+                    user={currentUser}
                     wallet={walletSolana}
                     onWalletDelete={() => setWalletSolana(null)}
                   />

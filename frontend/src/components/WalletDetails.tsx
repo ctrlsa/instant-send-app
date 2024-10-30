@@ -18,15 +18,18 @@ import {
 import { Wallet } from "@/utils/wallet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import instance from "@/utils/axios";
 
 interface WalletDetailsProps {
   wallet: Wallet | null;
   onWalletDelete: () => void;
+  user: any;
 }
 
 export default function WalletDetails({
   wallet,
   onWalletDelete,
+  user,
 }: WalletDetailsProps) {
   const [visiblePrivateKey, setVisiblePrivateKey] = useState(false);
   const [copiedPublic, setCopiedPublic] = useState(false);
@@ -44,9 +47,16 @@ export default function WalletDetails({
     );
   }
 
-  const handleDeleteWallet = () => {
-    onWalletDelete();
-    toast.success("Solana Wallet deleted successfully!");
+  const handleDeleteWallet = async () => {
+    try {
+      onWalletDelete();
+      await instance.delete(`/wallet/deleteSolanaWallet/${user.id}`);
+
+      toast.success("Solana Wallet deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error deleting Solana Wallet");
+    }
   };
 
   const copyToClipboard = (content: string, isPublic: boolean) => {
