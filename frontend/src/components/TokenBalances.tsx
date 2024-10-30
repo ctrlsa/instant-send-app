@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TokenBZR, TokenSOL, TokenUSDC } from "@web3icons/react";
 import {
   Select,
   SelectContent,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useWallet } from "@/contexts/WalletContext";
+import { tokenList } from "@/utils/tokens";
 import { fetchTokenBalances, sendTokens, Token } from "@/utils/solanaUtils";
 
 type Contact = {
@@ -37,24 +37,6 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
-
-  const tokenList = [
-    {
-      symbol: "SOL",
-      icon: <TokenSOL variant="branded" />,
-      mintAddress: "So11111111111111111111111111111111111111112",
-    },
-    {
-      symbol: "USDC",
-      icon: <TokenUSDC variant="branded" />,
-      mintAddress: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-    },
-    {
-      symbol: "BRZ",
-      icon: <TokenBZR variant="branded" />,
-      mintAddress: "FtgGSFADXBtroxq8VCausXRr2of47QBf5AS1NtZCu4GD",
-    },
-  ];
 
   const updateTokenBalances = useCallback(async () => {
     if (!walletSolana || !connection) return;
