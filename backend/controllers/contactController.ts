@@ -3,29 +3,40 @@ import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
-// Get contacts for a specific user
 export const getContacts = async (req: Request, res: Response) => {
   try {
-    const userId = BigInt(req.params.id); // Use BigInt for userId
-    // Fetch the contacts related to the specific user using the UserContact model
+    const userId = BigInt(req.params.id);
+
+    // Fetch the contacts related to the specific user
     const userContacts = await prisma.userContact.findMany({
       where: { userId },
-      select: {
-        contact: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+      include: {
+        contact: true, // Fetch the contact details
       },
     });
 
-    const contactNames = userContacts.map((userContact) => ({
-      id: userContact.contact.id.toString(),
-      name: userContact.contact.name,
-    }));
+    // Map the contacts and retrieve solanaAddress for each contact if they are also a user
+    const contactNames = await Promise.all(
+      userContacts.map(async (userContact) => {
+        const solanaAddress = await prisma.user
+          .findUnique({
+            where: { id: userContact.contact.id },
+            select: { solanaAddress: true },
+          })
+          .then((user) => user?.solanaAddress || null);
 
-    console.log("Getting contact names...");
+        return {
+          id: userContact.contact.id.toString(),
+          name: userContact.contact.name,
+          solanaAddress,
+        };
+      })
+    );
+
+    console.log(
+      "Getting contact names with optional solana addresses...",
+      contactNames
+    );
     res.json(contactNames);
   } catch (err) {
     console.error(err);

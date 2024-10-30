@@ -23,6 +23,7 @@ import { fetchTokenBalances, sendTokens, Token } from "@/utils/solanaUtils";
 type Contact = {
   id: string;
   name: string;
+  solanaAddress: string;
 };
 
 type TokenBalancesProps = {
@@ -87,20 +88,28 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
 
     setLoading(true);
     try {
-      await sendTokens(
-        connection,
-        walletSolana,
-        selectedToken,
-        sendAmount,
-        "2syVfoPMEmBNoqn3PH8kwAffqkU7pzidvFGdQNYekvn7"
-      );
-      toast.success(
-        `Sent ${sendAmount} ${selectedToken.symbol} to ${recipient}`
-      );
-      setSelectedToken(null);
-      setSendAmount("");
-      setRecipient("");
-      await updateTokenBalances();
+      const recipientAddress = contacts.find(
+        (contact) => contact.id === recipient
+      )?.solanaAddress;
+      if (recipientAddress != null) {
+        await sendTokens(
+          connection,
+          walletSolana,
+          selectedToken,
+          sendAmount,
+          recipientAddress
+        );
+        toast.success(
+          `Sent ${sendAmount} ${selectedToken.symbol} to ${recipient}`
+        );
+        setSelectedToken(null);
+        setSendAmount("");
+        setRecipient("");
+        await updateTokenBalances();
+      } else {
+        toast.error("Recipient not found, Setting up Escrow Account");
+        //Implement Escrow Account Logic
+      }
     } catch (error) {
       console.error("Error:", error);
       if (error instanceof Error) {
