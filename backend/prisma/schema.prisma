@@ -12,20 +12,35 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model Contacts {
-  id        BigInt     @id
+
+model Contact {
+  id        BigInt         @id @default(autoincrement())
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    BigInt      // Foreign key to User model
-  user      User     @relation(fields: [userId], references: [id]) 
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  sharedBy  UserContact[]  // Many-to-many relationship with User through UserContact
 }
 
 model User {
-  id        BigInt        @id 
-  name      String
-  createdAt DateTime   @default(now())
+  id            BigInt         @id    // Telegram ID, set manually, not auto-increment
+  name          String
+  createdAt     DateTime       @default(now())
   solanaAddress String?
-  updatedAt DateTime   @updatedAt
-  contacts  Contacts[] // A User can have many Contacts
+  updatedAt     DateTime       @updatedAt
+  contacts      UserContact[]  // Many-to-many relationship with Contact through UserContact
 }
+
+model UserContact {
+  id        BigInt     @id @default(autoincrement())
+  userId    BigInt
+  contactId BigInt
+  createdAt DateTime   @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+  contact   Contact    @relation(fields: [contactId], references: [id])
+
+  @@unique([userId, contactId]) // Ensures a user cannot add the same contact twice
+  @@index([userId])             // Index for querying contacts by user
+  @@index([contactId])          // Index for querying users by contact
+}
+
