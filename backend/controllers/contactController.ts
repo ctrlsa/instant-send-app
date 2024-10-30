@@ -7,26 +7,29 @@ const prisma = new PrismaClient();
 export const getContacts = async (req: Request, res: Response) => {
   try {
     const userId = BigInt(req.params.id); // Use BigInt for userId
-
     // Fetch the contacts related to the specific user using the UserContact model
     const userContacts = await prisma.userContact.findMany({
       where: { userId },
-      include: {
-        contact: true, // Include the associated Contact information
+      select: {
+        contact: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
-    // Transform data to include contact information with string IDs
-    const contactsWithStringIds = userContacts.map((userContact) => ({
-      ...userContact.contact,
+    const contactNames = userContacts.map((userContact) => ({
       id: userContact.contact.id.toString(),
+      name: userContact.contact.name,
     }));
 
-    console.log("Getting contacts...");
-    res.json(contactsWithStringIds);
+    console.log("Getting contact names...");
+    res.json(contactNames);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error retrieving contacts.");
+    res.status(500).send("Error retrieving contact names.");
   }
 };
 
