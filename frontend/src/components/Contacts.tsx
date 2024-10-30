@@ -158,20 +158,20 @@ export default function Component({
                         </Avatar>
                         <div>
                           <p className="font-semibold">{contact.name}</p>
-                          <p className="text-xs text-gray-500">
+                          {/* <p className="text-xs text-gray-500">
                             @{contact.username}
-                          </p>
+                          </p> */}
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button
+                        {/* <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => copyUsername(contact.username)}
                           aria-label={`Copy ${contact.name}'s username`}
                         >
                           <Copy className="h-4 w-4" />
-                        </Button>
+                        </Button> */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
