@@ -39,11 +39,13 @@ interface Contact {
 interface ContactsProps {
   contacts: Contact[];
   handleRefresh: () => void;
+  user: any;
 }
 
 export default function Component({
   contacts = [],
   handleRefresh = () => {},
+  user,
 }: ContactsProps) {
   const [isOpenCollapsible, setIsOpenCollapsible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,7 +63,8 @@ export default function Component({
     console.log("Deleting contact with id:", contactId);
     try {
       setIsLoading(true);
-      await instance.delete(`contacts/deleteContact/${contactId}`);
+      const userId = user.id;
+      await instance.delete(`contacts/deleteContact/${userId}/${contactId}`);
       toast.success("Contact deleted successfully");
       handleRefresh();
     } catch (err) {

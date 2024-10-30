@@ -111,7 +111,11 @@ export default function Home() {
         {/* Contacts */}
         <Card>
           <CardContent>
-            <Contacts contacts={contacts} handleRefresh={getContacts} />
+            <Contacts
+              user={currentUser}
+              contacts={contacts}
+              handleRefresh={getContacts}
+            />
           </CardContent>
         </Card>
         {/* Token Balances */}

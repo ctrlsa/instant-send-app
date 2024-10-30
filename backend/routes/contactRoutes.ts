@@ -8,6 +8,6 @@ contactRoutes.get("/", (req, res) => {
   res.send("Hello from the contact routes!");
 });
 contactRoutes.get("/getContacts/:id", getContacts);
-contactRoutes.delete("/deleteContact/:id", deleteContact);
+contactRoutes.delete("/deleteContact/:userId/:contactId", deleteContact);
 
 export default contactRoutes;
