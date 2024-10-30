@@ -76,7 +76,7 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
         {
           symbol: "USDC",
           icon: <TokenUSDC variant="branded" />,
-          mintAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          mintAddress: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
         },
         {
           symbol: "BRZ",
@@ -165,119 +165,128 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
     }
 
     setLoading(true);
-
-    try {
-      console.log("Sending", sendAmount, selectedToken.symbol, "to", recipient);
-      const recipientPubkey = new PublicKey(
-        "2syVfoPMEmBNoqn3PH8kwAffqkU7pzidvFGdQNYekvn7"
-      );
-      const amountInDecimals = parseFloat(sendAmount) * 10 ** 6;
-
-      if (amountInDecimals > selectedToken.balance * 1e6) {
-        toast.error(
-          `Insufficient ${selectedToken.symbol} balance for this transfer`
+    if (selectedToken.symbol === "SOL") {
+    } else {
+      try {
+        console.log(
+          "Sending",
+          sendAmount,
+          selectedToken.symbol,
+          "to",
+          recipient
         );
-        setLoading(false);
-        return;
-      }
-
-      const fromPubkey = new PublicKey(walletSolana.publicKey);
-      console.log("From pubkey", fromPubkey.toBase58());
-      const mintPubkey = new PublicKey(selectedToken.mintAddress);
-
-      const fromTokenAccount = await getAssociatedTokenAddress(
-        mintPubkey,
-        fromPubkey
-      );
-      const toTokenAccount = await getAssociatedTokenAddress(
-        mintPubkey,
-        recipientPubkey
-      );
-
-      let transaction = new Transaction();
-
-      // Check if the sender's token account exists
-      const fromTokenAccountInfo = await connection.getAccountInfo(
-        fromTokenAccount
-      );
-      if (!fromTokenAccountInfo) {
-        console.log("Creating associated token account for sender");
-        transaction.add(
-          createAssociatedTokenAccountInstruction(
-            fromPubkey,
-            fromTokenAccount,
-            fromPubkey,
-            mintPubkey
-          )
+        const recipientPubkey = new PublicKey(
+          "2syVfoPMEmBNoqn3PH8kwAffqkU7pzidvFGdQNYekvn7"
         );
-      }
+        const amountInDecimals = parseFloat(sendAmount) * 10 ** 6;
 
-      // Check if the recipient's token account exists
-      const toTokenAccountInfo = await connection.getAccountInfo(
-        toTokenAccount
-      );
-      if (!toTokenAccountInfo) {
-        console.log("Creating associated token account for recipient");
-        transaction.add(
-          createAssociatedTokenAccountInstruction(
-            fromPubkey,
-            toTokenAccount,
-            recipientPubkey,
-            mintPubkey
-          )
-        );
-      }
-
-      // Add transfer instruction
-      transaction.add(
-        createTransferInstruction(
-          fromTokenAccount,
-          toTokenAccount,
-          fromPubkey,
-          BigInt(amountInDecimals),
-          [],
-          TOKEN_PROGRAM_ID
-        )
-      );
-
-      // Get recent blockhash
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = fromPubkey;
-
-      // Sign transaction
-      const signedTransaction = await signTransaction(
-        transaction,
-        walletSolana
-      );
-
-      // Send transaction
-      const signature = await connection.sendRawTransaction(
-        signedTransaction.serialize()
-      );
-      await connection.confirmTransaction(signature, "confirmed");
-
-      toast.success(
-        `Sent ${sendAmount} ${selectedToken.symbol} to ${recipient}`
-      );
-      setSelectedToken(null);
-      setSendAmount("");
-      setRecipient("");
-    } catch (error) {
-      console.error("Error:", error);
-      if (error instanceof Error) {
-        if (error.message.includes("0x1")) {
+        if (amountInDecimals > selectedToken.balance * 1e6) {
           toast.error(
-            `Insufficient funds for transfer and fees. Please check your balance.`
+            `Insufficient ${selectedToken.symbol} balance for this transfer`
           );
-        } else {
-          toast.error(`Transaction failed: ${error.message}`);
+          setLoading(false);
+          return;
         }
-      } else {
-        toast.error("An unknown error occurred. Please try again.");
+
+        const fromPubkey = new PublicKey(walletSolana.publicKey);
+        console.log("From pubkey", fromPubkey.toBase58());
+        const mintPubkey = new PublicKey(selectedToken.mintAddress);
+
+        const fromTokenAccount = await getAssociatedTokenAddress(
+          mintPubkey,
+          fromPubkey
+        );
+        const toTokenAccount = await getAssociatedTokenAddress(
+          mintPubkey,
+          recipientPubkey
+        );
+
+        let transaction = new Transaction();
+
+        // Check if the sender's token account exists
+        const fromTokenAccountInfo = await connection.getAccountInfo(
+          fromTokenAccount
+        );
+        if (!fromTokenAccountInfo) {
+          console.log("Creating associated token account for sender");
+          transaction.add(
+            createAssociatedTokenAccountInstruction(
+              fromPubkey,
+              fromTokenAccount,
+              fromPubkey,
+              mintPubkey
+            )
+          );
+        }
+
+        // Check if the recipient's token account exists
+        const toTokenAccountInfo = await connection.getAccountInfo(
+          toTokenAccount
+        );
+        if (!toTokenAccountInfo) {
+          console.log("Creating associated token account for recipient");
+          transaction.add(
+            createAssociatedTokenAccountInstruction(
+              fromPubkey,
+              toTokenAccount,
+              recipientPubkey,
+              mintPubkey
+            )
+          );
+        }
+
+        // Add transfer instruction
+        transaction.add(
+          createTransferInstruction(
+            fromTokenAccount,
+            toTokenAccount,
+            fromPubkey,
+            BigInt(amountInDecimals),
+            [],
+            TOKEN_PROGRAM_ID
+          )
+        );
+
+        // Get recent blockhash
+        const { blockhash } = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = fromPubkey;
+
+        // Sign transaction
+        const signedTransaction = await signTransaction(
+          transaction,
+          walletSolana
+        );
+
+        // Send transaction
+        const signature = await connection.sendRawTransaction(
+          signedTransaction.serialize()
+        );
+        await connection.confirmTransaction(signature, "confirmed");
+
+        toast.success(
+          `Sent ${sendAmount} ${selectedToken.symbol} to ${recipient}`
+        );
+        setSelectedToken(null);
+        setSendAmount("");
+        setRecipient("");
+      } catch (error) {
+        console.error("Error:", error);
+        if (error instanceof Error) {
+          if (error.message.includes("0x1")) {
+            toast.error(
+              `Insufficient funds for transfer and fees. Please check your balance.`
+            );
+          } else {
+            toast.error(`Transaction failed: ${error.message}`);
+          }
+        } else {
+          toast.error("An unknown error occurred. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+        fetchTokenBalances();
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -316,96 +325,90 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
         <CardTitle>Token Balances</CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            {tokens.map((token) => (
+              <motion.div
+                key={token.symbol}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="cursor-pointer"
+                onClick={() => setSelectedToken(token)}
+              >
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center p-4">
+                    <span className="text-2xl mb-2">{token.icon}</span>
+                    <h3 className="font-bold">{token.symbol}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {formatBalance(token.balance)}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              {tokens.map((token) => (
-                <motion.div
-                  key={token.symbol}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedToken(token)}
-                >
-                  <Card>
-                    <CardContent className="flex flex-col items-center justify-center p-4">
-                      <span className="text-2xl mb-2">{token.icon}</span>
-                      <h3 className="font-bold">{token.symbol}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {formatBalance(token.balance)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
 
-            <AnimatePresence>
-              {selectedToken && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-4"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">
-                      Send {selectedToken.symbol}
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSelectedToken(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Amount</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={sendAmount}
-                      onChange={(e) => setSendAmount(e.target.value)}
-                      placeholder="Enter amount"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="recipient">Recipient</Label>
-                    <Select onValueChange={setRecipient} value={recipient}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select recipient" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {contacts.map((contact) => (
-                          <SelectItem key={contact.id} value={contact.id}>
-                            {contact.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    className="w-full"
-                    onClick={handleSend}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Send className="h-4 w-4 mr-2" />
-                    )}
+          <AnimatePresence>
+            {selectedToken && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">
                     Send {selectedToken.symbol}
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedToken(null)}
+                  >
+                    <X className="h-4 w-4" />
                   </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={sendAmount}
+                    onChange={(e) => setSendAmount(e.target.value)}
+                    placeholder="Enter amount"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recipient">Recipient</Label>
+                  <Select onValueChange={setRecipient} value={recipient}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select recipient" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contacts.map((contact) => (
+                        <SelectItem key={contact.id} value={contact.id}>
+                          {contact.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={handleSend}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  Send {selectedToken.symbol}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </CardContent>
     </Card>
   );
