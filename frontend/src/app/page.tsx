@@ -119,7 +119,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <TokenBalances wallet={walletSolana} contacts={contacts} />
+            <TokenBalances contacts={contacts} />
           </motion.div>
         )}
       </main>
