@@ -9,6 +9,9 @@
     "bot:pm2": "pm2 start ./start-bot.sh --name instant-send-bot",
     "bot": "nodemon bot.ts",
     "start": "nodemon index.ts",
+    "prisma:migrate": "npx prisma migrate deploy",
+    "prisma:dev": "npx prisma migrate dev",
+    "prisma:generate": "npx prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && tsc"
   },
   "keywords": [],

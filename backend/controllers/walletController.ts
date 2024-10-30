@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export const addWallet = async (req: Request, res: Response) => {
   try {
-    const { id, name, solanaAddress, ethereumAddress } = req.body;
+    const { id, name, solanaAddress } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: { id },
@@ -18,21 +18,14 @@ export const addWallet = async (req: Request, res: Response) => {
           data: { solanaAddress },
         });
         res.status(200).send("Solana wallet updated successfully.");
-      } else if (ethereumAddress) {
-        await prisma.user.update({
-          where: { id },
-          data: { ethereumAddress },
-        });
-        res.status(200).send("Ethereum wallet updated successfully.");
       }
     } else {
-      // Create a new user with either the Solana or Ethereum address
+      // Create a new user with either the Solana address
       await prisma.user.create({
         data: {
           id,
           name,
           solanaAddress: solanaAddress || null,
-          ethereumAddress: ethereumAddress || null,
         },
       });
 
@@ -57,20 +50,5 @@ export const deleteSolanaWallet = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Error deleting Solana wallet.");
-  }
-};
-export const deleteEthereumWallet = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id;
-
-    await prisma.user.update({
-      where: { id: parseInt(id) },
-      data: { ethereumAddress: null },
-    });
-
-    res.send("Ethereum wallet deleted successfully.");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error deleting Ethereum wallet.");
   }
 };

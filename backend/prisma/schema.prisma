@@ -25,7 +25,6 @@ model User {
   id        BigInt        @id 
   name      String
   createdAt DateTime   @default(now())
-  ethereumAddress String?
   solanaAddress String?
   updatedAt DateTime   @updatedAt
   contacts  Contacts[] // A User can have many Contacts
