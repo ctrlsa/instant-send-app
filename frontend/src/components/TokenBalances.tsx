@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Send, X } from "lucide-react";
+import { Loader2, RefreshCcw, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -131,7 +131,13 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Token Balances</CardTitle>
+        <div className="flex flex-row justify-between">
+          <CardTitle>Token Balances</CardTitle>
+          <RefreshCcw
+            className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            onClick={async () => await updateTokenBalances()}
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
