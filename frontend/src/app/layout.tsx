@@ -10,6 +10,7 @@ import "./_assets/globals.css";
 import { ThemeProvider } from "@/components/themeprovider";
 import { Toaster } from "@/components/ui/sonner";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { CSPostHogProvider } from "@/contexts/PostHogProvider";
 
 export const metadata: Metadata = {
   title: "Instant Send App by CTRL",
@@ -20,20 +21,22 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <WalletProvider>
-            <Toaster />
-            <Root>
-              <Navbar />
-              {children}
-            </Root>
-          </WalletProvider>
-        </ThemeProvider>
+        <CSPostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <WalletProvider>
+              <Toaster />
+              <Root>
+                <Navbar />
+                {children}
+              </Root>
+            </WalletProvider>
+          </ThemeProvider>
+        </CSPostHogProvider>
       </body>
     </html>
   );
