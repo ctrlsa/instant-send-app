@@ -100,7 +100,10 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
           recipientAddress
         );
         toast.success(
-          `Sent ${sendAmount} ${selectedToken.symbol} to ${recipient}`
+          `Sent ${sendAmount} ${selectedToken.symbol} to ${
+            contacts.find((contact) => contact.id === recipient)?.name ||
+            "Recipient"
+          }`
         );
         setSelectedToken(null);
         setSendAmount("");
