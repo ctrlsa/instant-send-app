@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit:coverage": "vitest --coverage",
+    "test:unit": "vitest",
+    "test:watch": "vitest -u",
     "bot:pm2": "pm2 start ./start-bot.sh --name instant-send-bot",
     "bot": "nodemon bot.ts",
     "start": "nodemon index.ts",
@@ -21,8 +23,11 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
+    "@vitest/coverage-v8": "^2.1.4",
     "prisma": "^5.20.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vite-tsconfig-paths": "^5.0.1",
+    "vitest": "^2.1.4"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
