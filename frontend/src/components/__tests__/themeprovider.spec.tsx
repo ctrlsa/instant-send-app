@@ -10,8 +10,8 @@ beforeAll(() => {
       matches: false,
       media: query,
       onchange: null,
-      addListener: () => {}, // Deprecated
-      removeListener: () => {}, // Deprecated
+      addListener: () => {},
+      removeListener: () => {},
       addEventListener: () => {},
       removeEventListener: () => {},
       dispatchEvent: () => false,
@@ -28,7 +28,7 @@ describe("ThemeProvider", () => {
     const { getByText } = render(
       <ThemeProvider>
         <div>Test Content</div>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
     expect(getByText("Test Content")).toBeTruthy();
   });
@@ -37,7 +37,7 @@ describe("ThemeProvider", () => {
     const { container } = render(
       <ThemeProvider attribute="class" defaultTheme="light">
         <div>Test Content</div>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     // Check if the ThemeProvider component exists
