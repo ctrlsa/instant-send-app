@@ -2,8 +2,6 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 
-console.log("hi", import.meta.url);
-
 export default defineConfig({
   plugins: [react()],
   test: {
