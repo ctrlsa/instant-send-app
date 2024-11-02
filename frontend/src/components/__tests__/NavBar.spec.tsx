@@ -30,7 +30,7 @@ describe("Navbar Component", () => {
       render(<Navbar />);
 
       expect(screen.getByText("Instant Send App").textContent).toBe(
-        "Instant Send App"
+        "Instant Send App",
       );
     });
     it("renders image", () => {
