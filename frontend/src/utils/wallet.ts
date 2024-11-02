@@ -15,7 +15,7 @@ export interface Wallet {
 export const generateWalletFromMnemonic = (
   pathType: string,
   mnemonic: string,
-  accountIndex: number
+  accountIndex: number,
 ): Wallet | null => {
   try {
     if (pathType !== "501") {

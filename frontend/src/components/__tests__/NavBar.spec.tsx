@@ -13,6 +13,7 @@ vi.mock("next-themes", () => ({
 // Mock `next/image` to avoid issues with Next.js's Image component in tests
 vi.mock("next/image", () => ({
   __esModule: true,
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
   default: (props: any) => <img {...props} />,
 }));
 

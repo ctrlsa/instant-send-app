@@ -38,6 +38,7 @@ export default function Home() {
 
   useEffect(() => {
     if (currentUser) getContacts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   useEffect(() => {

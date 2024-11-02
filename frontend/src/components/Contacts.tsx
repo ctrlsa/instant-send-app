@@ -55,7 +55,7 @@ export default function Component({
     return contacts.filter(
       (contact) =>
         contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.username?.toLowerCase().includes(searchQuery.toLowerCase())
+        contact.username?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [contacts, searchQuery]);
 
@@ -81,7 +81,7 @@ export default function Component({
       toast.success("Username copied to clipboard");
     } else {
       toast.error(
-        "No username found, invite the user to InstantSendAppBot to get their username"
+        "No username found, invite the user to InstantSendAppBot to get their username",
       );
     }
   }, []);

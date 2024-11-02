@@ -16,7 +16,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   const [walletSolana, setWalletSolana] = useState<Wallet | null>(() =>
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("Solana_wallet") || "null")
-      : null
+      : null,
   );
 
   useEffect(() => {

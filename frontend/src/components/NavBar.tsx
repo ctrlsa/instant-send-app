@@ -13,6 +13,7 @@ const Navbar = () => {
   useEffect(() => {
     setMounted(true);
     setTheme("dark");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!mounted) return null;
