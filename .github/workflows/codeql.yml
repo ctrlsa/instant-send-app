@@ -1,6 +1,10 @@
 name: Code Quality check
 
 on:
+  push:
+    branches: "**"
+    paths:
+      - "frontend/**"
   pull_request:
     branches: "**"
     paths:
