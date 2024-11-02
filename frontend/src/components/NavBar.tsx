@@ -22,7 +22,7 @@ const Navbar = () => {
       <div className="flex items-center gap-2">
         <div className="flex flex-col gap-4">
           <span className="tracking-tighter text-xl font-extrabold text-primary flex gap-2 items-center">
-            <Image src={ctrl} alt="ctrl" width={40} />
+            <Image src={ctrl} alt="ctrl" width={40} data-testid="ctrl-image" />
             Instant Send App
           </span>
         </div>
