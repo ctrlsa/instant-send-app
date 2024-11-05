@@ -14,7 +14,7 @@ async function hashFunction(str: string): Promise<string> {
 
 export async function login(user: User, password: string): Promise<boolean> {
   try {
-    const storedHash = localStorage.getItem(`user_${user.id}`);
+    const storedHash = localStorage.getItem(`user_${user.id}_ctrl_wallet`);
     if (!storedHash) {
       return false;
     }
@@ -32,7 +32,7 @@ export async function createPassword(
 ): Promise<boolean> {
   try {
     const hash = await hashFunction(password);
-    localStorage.setItem(`user_${user.id}`, hash);
+    localStorage.setItem(`user_${user.id}_ctrl_wallet`, hash);
     return true;
   } catch (error) {
     console.error("Password creation failed:", error);
@@ -42,7 +42,7 @@ export async function createPassword(
 
 export async function checkPasswordExists(userId: string): Promise<boolean> {
   try {
-    const storedHash = localStorage.getItem(`user_${userId}`);
+    const storedHash = localStorage.getItem(`user_${userId}_ctrl_wallet`);
     return !!storedHash;
   } catch (error) {
     console.error("Password check failed:", error);
