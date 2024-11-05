@@ -28,7 +28,7 @@ export async function login(user: User, password: string): Promise<boolean> {
 
 export async function createPassword(
   user: User,
-  password: string
+  password: string,
 ): Promise<boolean> {
   try {
     const hash = await hashFunction(password);
