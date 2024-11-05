@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Wallet } from "@/utils/wallet";
@@ -6,18 +7,26 @@ import { useInitData } from "@telegram-apps/sdk-react";
 import { User, ChevronDown } from "lucide-react";
 import instance from "@/utils/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 import Contacts from "@/components/Contacts";
 import WalletDetails from "@/components/WalletDetails";
 import WalletGenerator from "@/components/WalletGenerator";
 import TokenBalances from "@/components/TokenBalances";
 import { useWallet } from "@/contexts/WalletContext";
+import { login, createPassword, checkPasswordExists } from "@/utils/auth";
+import { toast } from "sonner";
+import Auth from "@/components/Auth";
 
 export default function Home() {
   const initData = useInitData();
   const [contacts, setContacts] = useState([]);
   const { walletSolana, setWalletSolana } = useWallet();
   const [showWalletDetails, setShowWalletDetails] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined;
@@ -37,13 +46,43 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (currentUser) getContacts();
+    if (currentUser) {
+      getContacts();
+      checkPasswordExists(currentUser.id).then(setHasPassword);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   useEffect(() => {
     if (!walletSolana) setShowWalletDetails(true);
   }, [walletSolana]);
+
+  const handleAuth = async (password: string) => {
+    if (!currentUser) return;
+
+    if (hasPassword) {
+      const success = await login(currentUser, password);
+      if (success) {
+        toast("Login successful.");
+
+        setIsAuthenticated(true);
+      } else {
+        toast("Login failed. Please try again.");
+      }
+    } else {
+      const success = await createPassword(currentUser, password);
+      if (success) {
+        setHasPassword(true);
+        setIsAuthenticated(true);
+      } else {
+        toast("Password creation failed. Please try again.");
+      }
+    }
+  };
+
+  if (!isAuthenticated) {
+    return <Auth hasPassword={hasPassword} handleAuth={handleAuth} />;
+  }
 
   return (
     <motion.div
