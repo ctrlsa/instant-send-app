@@ -50,7 +50,7 @@ export default function Contacts({
   isOpen,
 }: ContactsProps) {
   const [isOpenCollapsible, setIsOpenCollapsible] = useState(
-    isOpen ? true : false
+    isOpen ? true : false,
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +59,7 @@ export default function Contacts({
     return contacts.filter(
       (contact) =>
         contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.username?.toLowerCase().includes(searchQuery.toLowerCase())
+        contact.username?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [contacts, searchQuery]);
 
@@ -85,7 +85,7 @@ export default function Contacts({
       toast.success("Username copied to clipboard");
     } else {
       toast.error(
-        "No username found, invite the user to InstantSendAppBot to get their username"
+        "No username found, invite the user to InstantSendAppBot to get their username",
       );
     }
   }, []);
