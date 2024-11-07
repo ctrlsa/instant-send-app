@@ -8,7 +8,13 @@ import { Loader2, Lock, Unlock, Eye, EyeOff, Info } from "lucide-react";
 import ctrl from "@/app/_assets/ctrl.svg";
 import Image from "next/image";
 import { useInitData } from "@telegram-apps/sdk-react";
-import { checkPasswordExists, login, createPassword } from "@/utils/auth";
+import {
+  checkPasswordExists,
+  login,
+  createPassword,
+  checkAuthenticationValidity,
+  clearAuthenticationTimestamp,
+} from "@/utils/auth";
 import { toast } from "sonner";
 
 interface AuthProps {
@@ -35,6 +41,9 @@ export default function Auth({ children }: AuthProps) {
   useEffect(() => {
     if (currentUser) {
       checkPasswordExists(currentUser.id).then(setHasPassword);
+      if (checkAuthenticationValidity(currentUser.id)) {
+        setIsAuthenticated(true);
+      }
     }
   }, [currentUser]);
 
@@ -83,6 +92,13 @@ export default function Auth({ children }: AuthProps) {
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
+
+  //   const handleLogout = () => {
+  //     if (currentUser) {
+  //       clearAuthenticationTimestamp(currentUser.id);
+  //       setIsAuthenticated(false);
+  //     }
+  //   };
 
   if (isAuthenticated) {
     return <>{children}</>;

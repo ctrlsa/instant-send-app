@@ -19,7 +19,11 @@ export async function login(user: User, password: string): Promise<boolean> {
       return false;
     }
     const inputHash = await hashFunction(password);
-    return storedHash === inputHash;
+    if (storedHash === inputHash) {
+      setAuthenticationTimestamp(user.id);
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error("Login failed:", error);
     return false;
@@ -28,11 +32,12 @@ export async function login(user: User, password: string): Promise<boolean> {
 
 export async function createPassword(
   user: User,
-  password: string,
+  password: string
 ): Promise<boolean> {
   try {
     const hash = await hashFunction(password);
     localStorage.setItem(`user_${user.id}_ctrl_wallet`, hash);
+    setAuthenticationTimestamp(user.id);
     return true;
   } catch (error) {
     console.error("Password creation failed:", error);
@@ -48,4 +53,20 @@ export async function checkPasswordExists(userId: string): Promise<boolean> {
     console.error("Password check failed:", error);
     return false;
   }
+}
+
+export function setAuthenticationTimestamp(userId: string): void {
+  localStorage.setItem(`user_${userId}_auth_timestamp`, Date.now().toString());
+}
+
+export function checkAuthenticationValidity(userId: string): boolean {
+  const timestamp = localStorage.getItem(`user_${userId}_auth_timestamp`);
+  if (!timestamp) return false;
+
+  const fourHoursInMs = 4 * 60 * 60 * 1000;
+  return Date.now() - parseInt(timestamp) < fourHoursInMs;
+}
+
+export function clearAuthenticationTimestamp(userId: string): void {
+  localStorage.removeItem(`user_${userId}_auth_timestamp`);
 }
