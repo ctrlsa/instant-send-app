@@ -3,8 +3,12 @@ import { useWallet } from "@/contexts/WalletContext";
 import { motion } from "framer-motion";
 import TokenBalances from "@/components/TokenBalances";
 import { useEffect, useMemo, useState } from "react";
+import { Wallet as WalletIcon } from "lucide-react";
 import instance from "@/utils/axios";
 import { useInitData } from "@telegram-apps/sdk-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const SendPage = () => {
   const initData = useInitData();
@@ -36,7 +40,7 @@ const SendPage = () => {
 
   return (
     <>
-      {walletSolana && (
+      {walletSolana ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -45,6 +49,20 @@ const SendPage = () => {
         >
           <TokenBalances contacts={contacts} defaultToken="SOL" />
         </motion.div>
+      ) : (
+        <Card>
+          <CardContent className="flex justify-between items-center py-4 min-h-screen">
+            <div className="flex items-center space-x-2">
+              <WalletIcon className="h-5 w-5 text-primary" />
+              <span className="font-medium">Manage Wallet</span>
+            </div>
+            <Link href="/wallet">
+              <Button variant="outline">
+                {walletSolana ? "View Details" : "Create Wallet"}
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       )}
     </>
   );

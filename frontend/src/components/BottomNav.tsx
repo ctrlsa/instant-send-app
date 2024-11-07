@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Send, Wallet, Settings, Contact } from "lucide-react";
+import { Home, Send, Wallet, Settings, Contact, Contact2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,6 +21,12 @@ export default function BottomNav() {
           icon={Send}
           label="Send"
           isActive={pathname === "/send"}
+        />
+        <NavItem
+          href="/contacts"
+          icon={Contact2}
+          label="Contacts"
+          isActive={pathname === "/contacts"}
         />
         <NavItem
           href="/wallet"

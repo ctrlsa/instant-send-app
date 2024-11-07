@@ -40,14 +40,18 @@ interface ContactsProps {
   contacts: Contact[];
   handleRefresh: () => void;
   user: any;
+  isOpen?: boolean;
 }
 
-export default function Component({
+export default function Contacts({
   contacts = [],
   handleRefresh = () => {},
   user,
+  isOpen,
 }: ContactsProps) {
-  const [isOpenCollapsible, setIsOpenCollapsible] = useState(false);
+  const [isOpenCollapsible, setIsOpenCollapsible] = useState(
+    isOpen ? true : false
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -55,7 +59,7 @@ export default function Component({
     return contacts.filter(
       (contact) =>
         contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.username?.toLowerCase().includes(searchQuery.toLowerCase()),
+        contact.username?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [contacts, searchQuery]);
 
@@ -81,14 +85,14 @@ export default function Component({
       toast.success("Username copied to clipboard");
     } else {
       toast.error(
-        "No username found, invite the user to InstantSendAppBot to get their username",
+        "No username found, invite the user to InstantSendAppBot to get their username"
       );
     }
   }, []);
 
   return (
     <motion.div animate={isOpenCollapsible ? "open" : "closed"}>
-      <div className="flex flex-row items-center justify-between mt-3 ">
+      <div className="flex flex-row items-center justify-between mt-3 ml-3 ">
         <Contact className="h-4 w-4" />
         <span>Contacts</span>
         <motion.button
@@ -115,7 +119,7 @@ export default function Component({
             transition={{ duration: 0.5, ease: [0, 0, 0.58, 1] }}
             className="flex flex-col space-y-2"
           >
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mt-2">
               <div className="relative flex-1 mr-2">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
