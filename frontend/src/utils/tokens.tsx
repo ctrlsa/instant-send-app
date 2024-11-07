@@ -1,6 +1,7 @@
 import { TokenBZR, TokenSOL, TokenUSDC } from "@web3icons/react";
+import { Token } from "./solanaUtils";
 
-export const tokenList = [
+export const tokenList: Omit<Token, "balance">[] = [
   {
     symbol: "SOL",
     icon: <TokenSOL variant="branded" />,

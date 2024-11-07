@@ -28,14 +28,23 @@ type Contact = {
 
 type TokenBalancesProps = {
   contacts: Contact[];
+  defaultToken?: string;
 };
 
-export default function TokenBalances({ contacts }: TokenBalancesProps) {
+export default function TokenBalances({
+  contacts,
+  defaultToken,
+}: TokenBalancesProps) {
   const { walletSolana } = useWallet();
   const [connection, setConnection] = useState<Connection | null>(null);
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const [selectedToken, setSelectedToken] = useState<Token | null>(
+    defaultToken
+      ? (tokenList.find((token) => token.symbol === defaultToken) ?? null)
+      : null
+  );
+
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
 
@@ -45,7 +54,7 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
       const balances = await fetchTokenBalances(
         connection,
         walletSolana.publicKey,
-        tokenList,
+        tokenList
       );
       setTokens(balances);
       setLoading(false);
@@ -89,7 +98,7 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
     setLoading(true);
     try {
       const recipientAddress = contacts.find(
-        (contact) => contact.id === recipient,
+        (contact) => contact.id === recipient
       )?.solanaAddress;
       if (recipientAddress != null) {
         await sendTokens(
@@ -97,13 +106,13 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
           walletSolana,
           selectedToken,
           sendAmount,
-          recipientAddress,
+          recipientAddress
         );
         toast.success(
           `Sent ${sendAmount} ${selectedToken.symbol} to ${
             contacts.find((contact) => contact.id === recipient)?.name ||
             "Recipient"
-          }`,
+          }`
         );
         setSelectedToken(null);
         setSendAmount("");
@@ -118,7 +127,7 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
       if (error instanceof Error) {
         if (error.message.includes("0x1")) {
           toast.error(
-            `Insufficient funds for transfer and fees. Please check your balance.`,
+            `Insufficient funds for transfer and fees. Please check your balance.`
           );
         } else {
           toast.error(`Transaction failed: ${error.message}`);
@@ -158,7 +167,7 @@ export default function TokenBalances({ contacts }: TokenBalancesProps) {
                     <span className="text-2xl mb-2">{token.icon}</span>
                     <h3 className="font-bold">{token.symbol}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {formatBalance(token.balance)}
+                      {formatBalance(token.balance ? token.balance : 0)}
                     </p>
                   </CardContent>
                 </Card>
