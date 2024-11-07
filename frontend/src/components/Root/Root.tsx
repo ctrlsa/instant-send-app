@@ -1,6 +1,8 @@
 "use client";
 
 import { type PropsWithChildren, useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
+
 import {
   SDKProvider,
   useLaunchParams,
@@ -20,6 +22,8 @@ import { useTelegramMock } from "@/hooks/useTelegramMock";
 import { useDidMount } from "@/hooks/useDidMount";
 
 import "./styles.css";
+import Navbar from "../NavBar";
+import BottomNav from "../BottomNav";
 
 function App(props: PropsWithChildren) {
   const lp = useLaunchParams();
@@ -87,6 +91,9 @@ export function Root(props: PropsWithChildren) {
       <RootInner {...props} />
     </ErrorBoundary>
   ) : (
-    <div className="root__loading">Loading</div>
+    <div className="root__loading">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <BottomNav />
+    </div>
   );
 }
