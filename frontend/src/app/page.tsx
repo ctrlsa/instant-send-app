@@ -17,6 +17,7 @@ export default function Home() {
   const initData = useInitData()
   const [contacts, setContacts] = useState([])
   const { walletSolana } = useWallet()
+  const [isFetchingContacts, setIsFetchingContacts] = useState(false)
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined
@@ -25,16 +26,26 @@ export default function Home() {
   }, [initData])
 
   const getContacts = async () => {
-    if (currentUser?.id) {
-      const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
-        params: {
-          initData: JSON.stringify(initData)
-        }
-      })
-      setContacts(res.data)
+    try {
+      if (currentUser?.id) {
+        const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
+          params: {
+            initData: JSON.stringify(initData)
+          }
+        })
+        setContacts(res.data)
+        setIsFetchingContacts(false)
+      }
+    } catch (e) {
+      console.error(e)
+      setIsFetchingContacts(false)
     }
   }
-
+  useEffect(() => {
+    if (currentUser) {
+      getContacts()
+    }
+  }, [])
   useEffect(() => {
     if (currentUser) {
       getContacts()
@@ -80,7 +91,12 @@ export default function Home() {
         {/* Contacts */}
         <Card>
           <CardContent>
-            <Contacts user={currentUser} contacts={contacts} handleRefresh={getContacts} />
+            <Contacts
+              user={currentUser}
+              contacts={contacts}
+              handleRefresh={getContacts}
+              isFetching={isFetchingContacts}
+            />
           </CardContent>
         </Card>
 

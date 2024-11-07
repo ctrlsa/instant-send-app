@@ -8,6 +8,7 @@ const ContactsPage = () => {
   const initData = useInitData()
   const [contacts, setContacts] = useState([])
   const { walletSolana } = useWallet()
+  const [isFetchingContacts, setIsFetchingContacts] = useState(false)
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined
@@ -16,13 +17,20 @@ const ContactsPage = () => {
   }, [initData])
 
   const getContacts = async () => {
-    if (currentUser?.id) {
-      const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
-        params: {
-          initData: JSON.stringify(initData)
-        }
-      })
-      setContacts(res.data)
+    try {
+      setIsFetchingContacts(true)
+      if (currentUser?.id) {
+        const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
+          params: {
+            initData: JSON.stringify(initData)
+          }
+        })
+        setContacts(res.data)
+      }
+      setIsFetchingContacts(false)
+    } catch (e) {
+      console.error(e)
+      setIsFetchingContacts(false)
     }
   }
 
@@ -31,10 +39,21 @@ const ContactsPage = () => {
       getContacts()
     }
   }, [currentUser])
+  useEffect(() => {
+    if (currentUser) {
+      getContacts()
+    }
+  }, [])
 
   return (
     <div className="p-2">
-      <Contacts isOpen={true} user={currentUser} contacts={contacts} handleRefresh={getContacts} />
+      <Contacts
+        isOpen={true}
+        user={currentUser}
+        contacts={contacts}
+        handleRefresh={getContacts}
+        isFetching={isFetchingContacts}
+      />
     </div>
   )
 }

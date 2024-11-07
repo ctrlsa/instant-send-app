@@ -33,13 +33,15 @@ interface ContactsProps {
   handleRefresh: () => void
   user: any
   isOpen?: boolean
+  isFetching?: boolean
 }
 
 export default function Contacts({
   contacts = [],
   handleRefresh = () => {},
   user,
-  isOpen
+  isOpen,
+  isFetching
 }: ContactsProps) {
   const [isOpenCollapsible, setIsOpenCollapsible] = useState(isOpen ? true : false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -119,7 +121,7 @@ export default function Contacts({
                 />
               </div>
               <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${isLoading || isFetching ? 'animate-spin' : ''}`} />
               </Button>
             </div>
             <div className="max-h-[300px] overflow-auto space-y-2">
