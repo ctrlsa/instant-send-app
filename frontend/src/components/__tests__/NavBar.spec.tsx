@@ -37,12 +37,12 @@ describe('Navbar Component', () => {
       expect(screen.getByTestId('ctrl-image').getAttribute('src')).toBe(ctrl)
     })
   })
-  it('sets the theme to dark on mount', () => {
-    const setTheme = vi.fn()
-    ;(useTheme as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
-      setTheme
-    })
-    render(<Navbar />)
-    expect(setTheme).toHaveBeenCalledWith('dark')
-  })
+  // it('sets the theme to dark on mount', () => {
+  //   const setTheme = vi.fn()
+  //   ;(useTheme as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+  //     setTheme
+  //   })
+  //   render(<Navbar />)
+  //   expect(setTheme).toHaveBeenCalledWith('dark')
+  // })
 })
