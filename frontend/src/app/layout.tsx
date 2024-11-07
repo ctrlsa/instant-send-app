@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { Root } from "@/components/Root/Root";
 import Navbar from "@/components/NavBar";
+import BottomNav from "@/components/BottomNav";
 
 import "@telegram-apps/telegram-ui/dist/styles.css";
 import "normalize.css/normalize.css";
@@ -32,7 +33,8 @@ export default function RootLayout({ children }: PropsWithChildren) {
               <Toaster />
               <Root>
                 <Navbar />
-                {children}
+                <main className="pt-16 pb-16"> {children}</main>
+                <BottomNav />
               </Root>
             </WalletProvider>
           </ThemeProvider>
