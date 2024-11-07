@@ -2,18 +2,14 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { useTheme } from 'next-themes'
 import { ModeToggle } from '@/components/ui/theme-button'
 
 import ctrl from '@/app/_assets/ctrl.svg'
 
 const Navbar = () => {
-  const { setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
     setMounted(true)
-    setTheme('dark')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (!mounted) return null
@@ -23,7 +19,7 @@ const Navbar = () => {
       <div className="flex flex-row items-center gap-2 justify-between h-16">
         <div className="flex flex-col gap-4">
           <span className="tracking-tighter text-xl font-extrabold text-primary flex gap-2 items-center">
-            <Image src={ctrl} alt="ctrl" width={40} data-testid="ctrl-image" />
+            <Image src={ctrl} alt="ctrl" width={40} data-testid="ctrl-image" className="p-2" />
             Instant Send App
           </span>
         </div>
