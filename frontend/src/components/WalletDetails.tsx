@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Copy, Check } from "lucide-react";
-import { toast } from "sonner";
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Eye, EyeOff, Copy, Check } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,63 +13,57 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Wallet } from "@/utils/wallet";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { motion } from "framer-motion";
-import instance from "@/utils/axios";
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
+import { Wallet } from '@/utils/wallet'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { motion } from 'framer-motion'
+import instance from '@/utils/axios'
 
 interface WalletDetailsProps {
-  wallet: Wallet | null;
-  onWalletDelete: () => void;
-  user: any;
+  wallet: Wallet | null
+  onWalletDelete: () => void
+  user: any
 }
 
-export default function WalletDetails({
-  wallet,
-  onWalletDelete,
-  user,
-}: WalletDetailsProps) {
-  const [visiblePrivateKey, setVisiblePrivateKey] = useState(false);
-  const [copiedPublic, setCopiedPublic] = useState(false);
-  const [copiedPrivate, setCopiedPrivate] = useState(false);
+export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDetailsProps) {
+  const [visiblePrivateKey, setVisiblePrivateKey] = useState(false)
+  const [copiedPublic, setCopiedPublic] = useState(false)
+  const [copiedPrivate, setCopiedPrivate] = useState(false)
 
   if (!wallet) {
     return (
       <Card className="mt-4">
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">
-            No wallet found for Solana
-          </p>
+          <p className="text-center text-muted-foreground">No wallet found for Solana</p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   const handleDeleteWallet = async () => {
     try {
-      onWalletDelete();
-      await instance.delete(`/wallet/deleteSolanaWallet/${user.id}`);
+      onWalletDelete()
+      await instance.delete(`/wallet/deleteSolanaWallet/${user.id}`)
 
-      toast.success("Solana Wallet deleted successfully!");
+      toast.success('Solana Wallet deleted successfully!')
     } catch (err) {
-      console.error(err);
-      toast.error("Error deleting Solana Wallet");
+      console.error(err)
+      toast.error('Error deleting Solana Wallet')
     }
-  };
+  }
 
   const copyToClipboard = (content: string, isPublic: boolean) => {
-    navigator.clipboard.writeText(content);
-    toast.success("Copied to clipboard!");
+    navigator.clipboard.writeText(content)
+    toast.success('Copied to clipboard!')
     if (isPublic) {
-      setCopiedPublic(true);
-      setTimeout(() => setCopiedPublic(false), 2000);
+      setCopiedPublic(true)
+      setTimeout(() => setCopiedPublic(false), 2000)
     } else {
-      setCopiedPrivate(true);
-      setTimeout(() => setCopiedPrivate(false), 2000);
+      setCopiedPrivate(true)
+      setTimeout(() => setCopiedPrivate(false), 2000)
     }
-  };
+  }
 
   return (
     <Card className="mt-4">
@@ -98,11 +92,7 @@ export default function WalletDetails({
                 className=" absolute top-1 right-1 transition-opacity duration-300"
                 onClick={() => copyToClipboard(wallet.publicKey, true)}
               >
-                {copiedPublic ? (
-                  <Check className="h-4 w-4 " />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+                {copiedPublic ? <Check className="h-4 w-4 " /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </motion.section>
@@ -113,17 +103,13 @@ export default function WalletDetails({
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-2"
           >
-            <h3 className="text-lg font-semibold tracking-tight">
-              Private Key
-            </h3>
+            <h3 className="text-lg font-semibold tracking-tight">Private Key</h3>
             <div className="relative group">
               <p
                 className="text-sm text-muted-foreground h-10 font-medium break-all p-2 pr-20 bg-muted rounded-md transition-colors duration-300 group-hover:bg-muted/80"
                 onClick={() => copyToClipboard(wallet.privateKey, false)}
               >
-                {visiblePrivateKey
-                  ? wallet.privateKey?.slice(0, 20) + "..."
-                  : "•".repeat(20)}
+                {visiblePrivateKey ? wallet.privateKey?.slice(0, 20) + '...' : '•'.repeat(20)}
               </p>
               <div className="absolute top-1 right-1 space-x-1 transition-opacity duration-300">
                 <Button
@@ -131,22 +117,14 @@ export default function WalletDetails({
                   size="icon"
                   onClick={() => copyToClipboard(wallet.privateKey, false)}
                 >
-                  {copiedPrivate ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
+                  {copiedPrivate ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setVisiblePrivateKey(!visiblePrivateKey)}
                 >
-                  {visiblePrivateKey ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {visiblePrivateKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
@@ -165,24 +143,20 @@ export default function WalletDetails({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Are you sure you want to delete this wallet?
-                </AlertDialogTitle>
+                <AlertDialogTitle>Are you sure you want to delete this wallet?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
-                  your wallet and keys from local storage.
+                  This action cannot be undone. This will permanently delete your wallet and keys
+                  from local storage.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteWallet}>
-                  Delete
-                </AlertDialogAction>
+                <AlertDialogAction onClick={handleDeleteWallet}>Delete</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </motion.div>
       </CardContent>
     </Card>
-  );
+  )
 }

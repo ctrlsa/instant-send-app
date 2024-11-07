@@ -1,23 +1,23 @@
-import type { PropsWithChildren } from "react";
-import type { Metadata } from "next";
+import type { PropsWithChildren } from 'react'
+import type { Metadata } from 'next'
 
-import { Root } from "@/components/Root/Root";
-import Navbar from "@/components/NavBar";
-import Auth from "@/components/Auth";
+import { Root } from '@/components/Root/Root'
+import Navbar from '@/components/NavBar'
+import Auth from '@/components/Auth'
 
-import "@telegram-apps/telegram-ui/dist/styles.css";
-import "normalize.css/normalize.css";
-import "./_assets/globals.css";
-import { ThemeProvider } from "@/components/themeprovider";
-import { Toaster } from "@/components/ui/sonner";
-import { WalletProvider } from "@/contexts/WalletContext";
-import { CSPostHogProvider } from "@/contexts/PostHogProvider";
-import BottomNav from "@/components/BottomNav";
+import '@telegram-apps/telegram-ui/dist/styles.css'
+import 'normalize.css/normalize.css'
+import './_assets/globals.css'
+import { ThemeProvider } from '@/components/themeprovider'
+import { Toaster } from '@/components/ui/sonner'
+import { WalletProvider } from '@/contexts/WalletContext'
+import { CSPostHogProvider } from '@/contexts/PostHogProvider'
+import BottomNav from '@/components/BottomNav'
 
 export const metadata: Metadata = {
-  title: "Instant Send App by CTRL",
-  description: "Instant Send App by CTRL",
-};
+  title: 'Instant Send App by CTRL',
+  description: 'Instant Send App by CTRL'
+}
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
@@ -45,5 +45,5 @@ export default function RootLayout({ children }: PropsWithChildren) {
         </CSPostHogProvider>
       </body>
     </html>
-  );
+  )
 }

@@ -1,45 +1,45 @@
-"use client";
+'use client'
 
-import React, { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import { useInitData } from "@telegram-apps/sdk-react";
-import { User, Wallet as WalletIcon } from "lucide-react";
-import instance from "@/utils/axios";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import React, { useState, useMemo, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { useInitData } from '@telegram-apps/sdk-react'
+import { User, Wallet as WalletIcon } from 'lucide-react'
+import instance from '@/utils/axios'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
-import Contacts from "@/components/Contacts";
-import TokenBalances from "@/components/TokenBalances";
-import { useWallet } from "@/contexts/WalletContext";
+import Contacts from '@/components/Contacts'
+import TokenBalances from '@/components/TokenBalances'
+import { useWallet } from '@/contexts/WalletContext'
 
 export default function Home() {
-  const initData = useInitData();
-  const [contacts, setContacts] = useState([]);
-  const { walletSolana } = useWallet();
+  const initData = useInitData()
+  const [contacts, setContacts] = useState([])
+  const { walletSolana } = useWallet()
 
   const currentUser = useMemo(() => {
-    if (!initData?.user) return undefined;
-    const { id, username, firstName, lastName } = initData.user;
-    return { id: id.toString(), username, name: `${firstName} ${lastName}` };
-  }, [initData]);
+    if (!initData?.user) return undefined
+    const { id, username, firstName, lastName } = initData.user
+    return { id: id.toString(), username, name: `${firstName} ${lastName}` }
+  }, [initData])
 
   const getContacts = async () => {
     if (currentUser?.id) {
       const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
         params: {
-          initData: JSON.stringify(initData),
-        },
-      });
-      setContacts(res.data);
+          initData: JSON.stringify(initData)
+        }
+      })
+      setContacts(res.data)
     }
-  };
+  }
 
   useEffect(() => {
     if (currentUser) {
-      getContacts();
+      getContacts()
     }
-  }, [currentUser]);
+  }, [currentUser])
 
   return (
     <motion.div
@@ -60,9 +60,7 @@ export default function Home() {
             >
               {currentUser?.name}
             </motion.div>
-            <p className="text-xs text-muted-foreground">
-              @{currentUser?.username}
-            </p>
+            <p className="text-xs text-muted-foreground">@{currentUser?.username}</p>
           </CardContent>
         </Card>
 
@@ -74,9 +72,7 @@ export default function Home() {
               <span className="font-medium">Manage Wallet</span>
             </div>
             <Link href="/wallet">
-              <Button variant="outline">
-                {walletSolana ? "View Details" : "Create Wallet"}
-              </Button>
+              <Button variant="outline">{walletSolana ? 'View Details' : 'Create Wallet'}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -84,11 +80,7 @@ export default function Home() {
         {/* Contacts */}
         <Card>
           <CardContent>
-            <Contacts
-              user={currentUser}
-              contacts={contacts}
-              handleRefresh={getContacts}
-            />
+            <Contacts user={currentUser} contacts={contacts} handleRefresh={getContacts} />
           </CardContent>
         </Card>
 
@@ -104,5 +96,5 @@ export default function Home() {
         )}
       </main>
     </motion.div>
-  );
+  )
 }

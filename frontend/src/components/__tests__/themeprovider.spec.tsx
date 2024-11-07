@@ -1,10 +1,10 @@
-import { render } from "@testing-library/react";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { ThemeProvider } from "../themeprovider";
+import { render } from '@testing-library/react'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { ThemeProvider } from '../themeprovider'
 
 // Mock window.matchMedia
 beforeAll(() => {
-  Object.defineProperty(window, "matchMedia", {
+  Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: (query: string) => ({
       matches: false,
@@ -14,33 +14,33 @@ beforeAll(() => {
       removeListener: () => {},
       addEventListener: () => {},
       removeEventListener: () => {},
-      dispatchEvent: () => false,
-    }),
-  });
-});
+      dispatchEvent: () => false
+    })
+  })
+})
 
 afterAll(() => {
-  delete (window as any).matchMedia;
-});
+  delete (window as any).matchMedia
+})
 
-describe("ThemeProvider", () => {
-  it("renders the children correctly", () => {
+describe('ThemeProvider', () => {
+  it('renders the children correctly', () => {
     const { getByText } = render(
       <ThemeProvider>
         <div>Test Content</div>
-      </ThemeProvider>,
-    );
-    expect(getByText("Test Content")).toBeTruthy();
-  });
+      </ThemeProvider>
+    )
+    expect(getByText('Test Content')).toBeTruthy()
+  })
 
-  it("passes props to NextThemesProvider", () => {
+  it('passes props to NextThemesProvider', () => {
     const { container } = render(
       <ThemeProvider attribute="class" defaultTheme="light">
         <div>Test Content</div>
-      </ThemeProvider>,
-    );
+      </ThemeProvider>
+    )
 
     // Check if the ThemeProvider component exists
-    expect(container.firstChild).toBeTruthy();
-  });
-});
+    expect(container.firstChild).toBeTruthy()
+  })
+})

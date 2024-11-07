@@ -3,169 +3,148 @@ import {
   PublicKey,
   Transaction,
   LAMPORTS_PER_SOL,
-  SystemProgram,
-} from "@solana/web3.js";
+  SystemProgram
+} from '@solana/web3.js'
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
   getAccount,
   createAssociatedTokenAccountInstruction,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import { Wallet } from "@/utils/wallet";
-import bs58 from "bs58";
-import nacl from "tweetnacl";
+  TOKEN_PROGRAM_ID
+} from '@solana/spl-token'
+import { Wallet } from '@/utils/wallet'
+import bs58 from 'bs58'
+import nacl from 'tweetnacl'
 
 export type Token = {
-  symbol: string;
-  balance?: number;
-  icon: JSX.Element;
-  mintAddress: string;
-};
+  symbol: string
+  balance?: number
+  icon: JSX.Element
+  mintAddress: string
+}
 
 export const fetchTokenBalances = async (
   connection: Connection,
   walletPublicKey: string,
-  tokenList: Omit<Token, "balance">[],
+  tokenList: Omit<Token, 'balance'>[]
 ): Promise<Token[]> => {
-  const userPublicKey = new PublicKey(walletPublicKey);
+  const userPublicKey = new PublicKey(walletPublicKey)
 
   const balances = await Promise.all(
     tokenList.map(async (token) => {
-      if (token.symbol === "SOL") {
-        const balance = await connection.getBalance(userPublicKey);
-        return { ...token, balance: balance / LAMPORTS_PER_SOL };
+      if (token.symbol === 'SOL') {
+        const balance = await connection.getBalance(userPublicKey)
+        return { ...token, balance: balance / LAMPORTS_PER_SOL }
       } else {
-        const mintPublicKey = new PublicKey(token.mintAddress);
-        const tokenAccount = await getAssociatedTokenAddress(
-          mintPublicKey,
-          userPublicKey,
-        );
+        const mintPublicKey = new PublicKey(token.mintAddress)
+        const tokenAccount = await getAssociatedTokenAddress(mintPublicKey, userPublicKey)
         try {
-          let accountInfo;
+          let accountInfo
           try {
-            accountInfo = await getAccount(connection, tokenAccount);
+            accountInfo = await getAccount(connection, tokenAccount)
           } catch (error) {
-            if (
-              error instanceof Error &&
-              error.message.includes("could not find account")
-            ) {
+            if (error instanceof Error && error.message.includes('could not find account')) {
               const transaction = new Transaction().add(
                 createAssociatedTokenAccountInstruction(
                   userPublicKey,
                   tokenAccount,
                   userPublicKey,
-                  mintPublicKey,
-                ),
-              );
-              const signature = await sendTransaction(
-                transaction,
-                connection,
-                walletPublicKey,
-              );
-              await connection.confirmTransaction(signature, "confirmed");
-              accountInfo = await getAccount(connection, tokenAccount);
+                  mintPublicKey
+                )
+              )
+              const signature = await sendTransaction(transaction, connection, walletPublicKey)
+              await connection.confirmTransaction(signature, 'confirmed')
+              accountInfo = await getAccount(connection, tokenAccount)
             } else {
-              throw error;
+              throw error
             }
           }
           return {
             ...token,
-            balance: Number(accountInfo.amount) / 1e6,
-          };
+            balance: Number(accountInfo.amount) / 1e6
+          }
         } catch (error) {
-          console.error(`Error fetching balance for ${token.symbol}:`, error);
-          return { ...token, balance: 0 };
+          console.error(`Error fetching balance for ${token.symbol}:`, error)
+          return { ...token, balance: 0 }
         }
       }
-    }),
-  );
+    })
+  )
 
-  return balances;
-};
+  return balances
+}
 
 export const sendTokens = async (
   connection: Connection,
   wallet: Wallet,
   selectedToken: Token,
   sendAmount: string,
-  recipient: string,
+  recipient: string
 ): Promise<string> => {
-  if (selectedToken.symbol === "SOL" && selectedToken.balance !== undefined) {
-    const recipientPubkey = new PublicKey(recipient);
-    const lamports = parseFloat(sendAmount) * LAMPORTS_PER_SOL;
+  if (selectedToken.symbol === 'SOL' && selectedToken.balance !== undefined) {
+    const recipientPubkey = new PublicKey(recipient)
+    const lamports = parseFloat(sendAmount) * LAMPORTS_PER_SOL
 
     if (lamports > selectedToken.balance * LAMPORTS_PER_SOL) {
-      throw new Error("Insufficient SOL balance for this transfer");
+      throw new Error('Insufficient SOL balance for this transfer')
     }
 
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: new PublicKey(wallet.publicKey),
         toPubkey: recipientPubkey,
-        lamports,
-      }),
-    );
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = new PublicKey(wallet.publicKey);
-    const signedTransaction = await signTransaction(transaction, wallet);
-    const signature = await connection.sendRawTransaction(
-      signedTransaction.serialize(),
-    );
-    await connection.confirmTransaction(signature, "confirmed");
-    console.log(signature);
-    return signature;
+        lamports
+      })
+    )
+    const { blockhash } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+    transaction.feePayer = new PublicKey(wallet.publicKey)
+    const signedTransaction = await signTransaction(transaction, wallet)
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+    await connection.confirmTransaction(signature, 'confirmed')
+    console.log(signature)
+    return signature
   } else {
-    const recipientPubkey = new PublicKey(recipient);
-    const amountInDecimals = parseFloat(sendAmount) * 10 ** 6;
+    const recipientPubkey = new PublicKey(recipient)
+    const amountInDecimals = parseFloat(sendAmount) * 10 ** 6
     if (selectedToken.balance) {
       if (amountInDecimals > selectedToken.balance * 1e6) {
-        throw new Error(
-          `Insufficient ${selectedToken.symbol} balance for this transfer`,
-        );
+        throw new Error(`Insufficient ${selectedToken.symbol} balance for this transfer`)
       }
     }
 
-    const fromPubkey = new PublicKey(wallet.publicKey);
-    const mintPubkey = new PublicKey(selectedToken.mintAddress);
+    const fromPubkey = new PublicKey(wallet.publicKey)
+    const mintPubkey = new PublicKey(selectedToken.mintAddress)
 
-    const fromTokenAccount = await getAssociatedTokenAddress(
-      mintPubkey,
-      fromPubkey,
-    );
-    const toTokenAccount = await getAssociatedTokenAddress(
-      mintPubkey,
-      recipientPubkey,
-    );
+    const fromTokenAccount = await getAssociatedTokenAddress(mintPubkey, fromPubkey)
+    const toTokenAccount = await getAssociatedTokenAddress(mintPubkey, recipientPubkey)
 
-    let transaction = new Transaction();
+    let transaction = new Transaction()
 
     // Check if the sender's token account exists
-    const fromTokenAccountInfo =
-      await connection.getAccountInfo(fromTokenAccount);
+    const fromTokenAccountInfo = await connection.getAccountInfo(fromTokenAccount)
     if (!fromTokenAccountInfo) {
       transaction.add(
         createAssociatedTokenAccountInstruction(
           fromPubkey,
           fromTokenAccount,
           fromPubkey,
-          mintPubkey,
-        ),
-      );
+          mintPubkey
+        )
+      )
     }
 
     // Check if the recipient's token account exists
-    const toTokenAccountInfo = await connection.getAccountInfo(toTokenAccount);
+    const toTokenAccountInfo = await connection.getAccountInfo(toTokenAccount)
     if (!toTokenAccountInfo) {
       transaction.add(
         createAssociatedTokenAccountInstruction(
           fromPubkey,
           toTokenAccount,
           recipientPubkey,
-          mintPubkey,
-        ),
-      );
+          mintPubkey
+        )
+      )
     }
 
     // Add transfer instruction
@@ -176,49 +155,41 @@ export const sendTokens = async (
         fromPubkey,
         BigInt(amountInDecimals),
         [],
-        TOKEN_PROGRAM_ID,
-      ),
-    );
+        TOKEN_PROGRAM_ID
+      )
+    )
 
     // Get recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = fromPubkey;
+    const { blockhash } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+    transaction.feePayer = fromPubkey
 
     // Sign and send transaction
-    const signedTransaction = await signTransaction(transaction, wallet);
-    const signature = await connection.sendRawTransaction(
-      signedTransaction.serialize(),
-    );
-    await connection.confirmTransaction(signature, "confirmed");
+    const signedTransaction = await signTransaction(transaction, wallet)
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+    await connection.confirmTransaction(signature, 'confirmed')
 
-    return signature;
+    return signature
   }
-};
+}
 
-const signTransaction = async (
-  transaction: Transaction,
-  wallet: Wallet,
-): Promise<Transaction> => {
-  const message = transaction.serializeMessage();
-  const secretKey = bs58.decode(wallet.privateKey);
-  const signature = nacl.sign.detached(message, secretKey);
-  transaction.addSignature(
-    new PublicKey(wallet.publicKey),
-    Buffer.from(signature),
-  );
-  return transaction;
-};
+const signTransaction = async (transaction: Transaction, wallet: Wallet): Promise<Transaction> => {
+  const message = transaction.serializeMessage()
+  const secretKey = bs58.decode(wallet.privateKey)
+  const signature = nacl.sign.detached(message, secretKey)
+  transaction.addSignature(new PublicKey(wallet.publicKey), Buffer.from(signature))
+  return transaction
+}
 
 const sendTransaction = async (
   transaction: Transaction,
   connection: Connection,
-  walletPublicKey: string,
+  walletPublicKey: string
 ): Promise<string> => {
-  const { blockhash } = await connection.getLatestBlockhash();
-  transaction.recentBlockhash = blockhash;
-  transaction.feePayer = new PublicKey(walletPublicKey);
-  const rawTransaction = transaction.serialize();
-  const signature = await connection.sendRawTransaction(rawTransaction);
-  return signature;
-};
+  const { blockhash } = await connection.getLatestBlockhash()
+  transaction.recentBlockhash = blockhash
+  transaction.feePayer = new PublicKey(walletPublicKey)
+  const rawTransaction = transaction.serialize()
+  const signature = await connection.sendRawTransaction(rawTransaction)
+  return signature
+}

@@ -3,7 +3,7 @@ const GeneralSettingsPage: React.FC = () => {
     <div>
       <h1>General Settings</h1>
     </div>
-  );
-};
+  )
+}
 
-export default GeneralSettingsPage;
+export default GeneralSettingsPage

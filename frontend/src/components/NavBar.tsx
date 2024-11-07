@@ -1,22 +1,22 @@
-"use client";
-import React from "react";
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { useTheme } from "next-themes";
-import { ModeToggle } from "@/components/ui/theme-button";
+'use client'
+import React from 'react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { useTheme } from 'next-themes'
+import { ModeToggle } from '@/components/ui/theme-button'
 
-import ctrl from "@/app/_assets/ctrl.svg";
+import ctrl from '@/app/_assets/ctrl.svg'
 
 const Navbar = () => {
-  const { setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   useEffect(() => {
-    setMounted(true);
-    setTheme("dark");
+    setMounted(true)
+    setTheme('dark')
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
-  if (!mounted) return null;
+  if (!mounted) return null
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-background border-t border-border z-50">
@@ -30,7 +30,7 @@ const Navbar = () => {
         <ModeToggle />
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

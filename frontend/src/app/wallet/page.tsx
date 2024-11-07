@@ -1,23 +1,23 @@
-"use client";
+'use client'
 
-import React from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import WalletGenerator from "@/components/WalletGenerator";
-import WalletDetails from "@/components/WalletDetails";
-import { useWallet } from "@/contexts/WalletContext";
-import { useInitData } from "@telegram-apps/sdk-react";
-import { Wallet } from "@/utils/wallet";
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import WalletGenerator from '@/components/WalletGenerator'
+import WalletDetails from '@/components/WalletDetails'
+import { useWallet } from '@/contexts/WalletContext'
+import { useInitData } from '@telegram-apps/sdk-react'
+import { Wallet } from '@/utils/wallet'
 
 export default function WalletManagement() {
-  const initData = useInitData();
-  const { walletSolana, setWalletSolana } = useWallet();
+  const initData = useInitData()
+  const { walletSolana, setWalletSolana } = useWallet()
 
   const currentUser = React.useMemo(() => {
-    if (!initData?.user) return undefined;
-    const { id, username, firstName, lastName } = initData.user;
-    return { id: id.toString(), username, name: `${firstName} ${lastName}` };
-  }, [initData]);
+    if (!initData?.user) return undefined
+    const { id, username, firstName, lastName } = initData.user
+    return { id: id.toString(), username, name: `${firstName} ${lastName}` }
+  }, [initData])
 
   return (
     <motion.div
@@ -46,5 +46,5 @@ export default function WalletManagement() {
         </CardContent>
       </Card>
     </motion.div>
-  );
+  )
 }

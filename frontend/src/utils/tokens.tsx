@@ -1,20 +1,20 @@
-import { TokenBZR, TokenSOL, TokenUSDC } from "@web3icons/react";
-import { Token } from "./solanaUtils";
+import { TokenBZR, TokenSOL, TokenUSDC } from '@web3icons/react'
+import { Token } from './solanaUtils'
 
-export const tokenList: Omit<Token, "balance">[] = [
+export const tokenList: Omit<Token, 'balance'>[] = [
   {
-    symbol: "SOL",
+    symbol: 'SOL',
     icon: <TokenSOL variant="branded" />,
-    mintAddress: "So11111111111111111111111111111111111111112",
+    mintAddress: 'So11111111111111111111111111111111111111112'
   },
   {
-    symbol: "USDC",
+    symbol: 'USDC',
     icon: <TokenUSDC variant="branded" />,
-    mintAddress: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    mintAddress: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'
   },
   {
-    symbol: "BRZ",
+    symbol: 'BRZ',
     icon: <TokenBZR variant="branded" />,
-    mintAddress: "FtgGSFADXBtroxq8VCausXRr2of47QBf5AS1NtZCu4GD",
-  },
-];
+    mintAddress: 'FtgGSFADXBtroxq8VCausXRr2of47QBf5AS1NtZCu4GD'
+  }
+]
