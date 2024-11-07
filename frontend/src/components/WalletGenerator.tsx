@@ -27,7 +27,7 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({
   user,
 }) => {
   const [mnemonicWords, setMnemonicWords] = useState<string[]>(
-    Array(12).fill(" ")
+    Array(12).fill(" "),
   );
   const [showMnemonic, setShowMnemonic] = useState<boolean>(false);
   const [mnemonicInput, setMnemonicInput] = useState<string>("");

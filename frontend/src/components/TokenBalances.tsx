@@ -42,7 +42,7 @@ export default function TokenBalances({
   const [selectedToken, setSelectedToken] = useState<Token | null>(
     defaultToken
       ? (tokenList.find((token) => token.symbol === defaultToken) ?? null)
-      : null
+      : null,
   );
 
   const [sendAmount, setSendAmount] = useState("");
@@ -54,7 +54,7 @@ export default function TokenBalances({
       const balances = await fetchTokenBalances(
         connection,
         walletSolana.publicKey,
-        tokenList
+        tokenList,
       );
       setTokens(balances);
       setLoading(false);
@@ -98,7 +98,7 @@ export default function TokenBalances({
     setLoading(true);
     try {
       const recipientAddress = contacts.find(
-        (contact) => contact.id === recipient
+        (contact) => contact.id === recipient,
       )?.solanaAddress;
       if (recipientAddress != null) {
         await sendTokens(
@@ -106,13 +106,13 @@ export default function TokenBalances({
           walletSolana,
           selectedToken,
           sendAmount,
-          recipientAddress
+          recipientAddress,
         );
         toast.success(
           `Sent ${sendAmount} ${selectedToken.symbol} to ${
             contacts.find((contact) => contact.id === recipient)?.name ||
             "Recipient"
-          }`
+          }`,
         );
         setSelectedToken(null);
         setSendAmount("");
@@ -127,7 +127,7 @@ export default function TokenBalances({
       if (error instanceof Error) {
         if (error.message.includes("0x1")) {
           toast.error(
-            `Insufficient funds for transfer and fees. Please check your balance.`
+            `Insufficient funds for transfer and fees. Please check your balance.`,
           );
         } else {
           toast.error(`Transaction failed: ${error.message}`);

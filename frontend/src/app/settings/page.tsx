@@ -55,7 +55,7 @@ const SettingsPage = () => {
         // Replace with the actual Solana explorer URL
         window.open(
           `https://explorer.solana.com/address/${walletSolana.publicKey}`,
-          "_blank"
+          "_blank",
         );
       } else {
         // Show an error or notification that wallet is not connected

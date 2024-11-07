@@ -26,7 +26,7 @@ export type Token = {
 export const fetchTokenBalances = async (
   connection: Connection,
   walletPublicKey: string,
-  tokenList: Omit<Token, "balance">[]
+  tokenList: Omit<Token, "balance">[],
 ): Promise<Token[]> => {
   const userPublicKey = new PublicKey(walletPublicKey);
 
@@ -39,7 +39,7 @@ export const fetchTokenBalances = async (
         const mintPublicKey = new PublicKey(token.mintAddress);
         const tokenAccount = await getAssociatedTokenAddress(
           mintPublicKey,
-          userPublicKey
+          userPublicKey,
         );
         try {
           let accountInfo;
@@ -55,13 +55,13 @@ export const fetchTokenBalances = async (
                   userPublicKey,
                   tokenAccount,
                   userPublicKey,
-                  mintPublicKey
-                )
+                  mintPublicKey,
+                ),
               );
               const signature = await sendTransaction(
                 transaction,
                 connection,
-                walletPublicKey
+                walletPublicKey,
               );
               await connection.confirmTransaction(signature, "confirmed");
               accountInfo = await getAccount(connection, tokenAccount);
@@ -78,7 +78,7 @@ export const fetchTokenBalances = async (
           return { ...token, balance: 0 };
         }
       }
-    })
+    }),
   );
 
   return balances;
@@ -89,7 +89,7 @@ export const sendTokens = async (
   wallet: Wallet,
   selectedToken: Token,
   sendAmount: string,
-  recipient: string
+  recipient: string,
 ): Promise<string> => {
   if (selectedToken.symbol === "SOL" && selectedToken.balance !== undefined) {
     const recipientPubkey = new PublicKey(recipient);
@@ -104,14 +104,14 @@ export const sendTokens = async (
         fromPubkey: new PublicKey(wallet.publicKey),
         toPubkey: recipientPubkey,
         lamports,
-      })
+      }),
     );
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = new PublicKey(wallet.publicKey);
     const signedTransaction = await signTransaction(transaction, wallet);
     const signature = await connection.sendRawTransaction(
-      signedTransaction.serialize()
+      signedTransaction.serialize(),
     );
     await connection.confirmTransaction(signature, "confirmed");
     console.log(signature);
@@ -122,7 +122,7 @@ export const sendTokens = async (
     if (selectedToken.balance) {
       if (amountInDecimals > selectedToken.balance * 1e6) {
         throw new Error(
-          `Insufficient ${selectedToken.symbol} balance for this transfer`
+          `Insufficient ${selectedToken.symbol} balance for this transfer`,
         );
       }
     }
@@ -132,11 +132,11 @@ export const sendTokens = async (
 
     const fromTokenAccount = await getAssociatedTokenAddress(
       mintPubkey,
-      fromPubkey
+      fromPubkey,
     );
     const toTokenAccount = await getAssociatedTokenAddress(
       mintPubkey,
-      recipientPubkey
+      recipientPubkey,
     );
 
     let transaction = new Transaction();
@@ -150,8 +150,8 @@ export const sendTokens = async (
           fromPubkey,
           fromTokenAccount,
           fromPubkey,
-          mintPubkey
-        )
+          mintPubkey,
+        ),
       );
     }
 
@@ -163,8 +163,8 @@ export const sendTokens = async (
           fromPubkey,
           toTokenAccount,
           recipientPubkey,
-          mintPubkey
-        )
+          mintPubkey,
+        ),
       );
     }
 
@@ -176,8 +176,8 @@ export const sendTokens = async (
         fromPubkey,
         BigInt(amountInDecimals),
         [],
-        TOKEN_PROGRAM_ID
-      )
+        TOKEN_PROGRAM_ID,
+      ),
     );
 
     // Get recent blockhash
@@ -188,7 +188,7 @@ export const sendTokens = async (
     // Sign and send transaction
     const signedTransaction = await signTransaction(transaction, wallet);
     const signature = await connection.sendRawTransaction(
-      signedTransaction.serialize()
+      signedTransaction.serialize(),
     );
     await connection.confirmTransaction(signature, "confirmed");
 
@@ -198,14 +198,14 @@ export const sendTokens = async (
 
 const signTransaction = async (
   transaction: Transaction,
-  wallet: Wallet
+  wallet: Wallet,
 ): Promise<Transaction> => {
   const message = transaction.serializeMessage();
   const secretKey = bs58.decode(wallet.privateKey);
   const signature = nacl.sign.detached(message, secretKey);
   transaction.addSignature(
     new PublicKey(wallet.publicKey),
-    Buffer.from(signature)
+    Buffer.from(signature),
   );
   return transaction;
 };
@@ -213,7 +213,7 @@ const signTransaction = async (
 const sendTransaction = async (
   transaction: Transaction,
   connection: Connection,
-  walletPublicKey: string
+  walletPublicKey: string,
 ): Promise<string> => {
   const { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
