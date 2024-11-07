@@ -4,8 +4,10 @@ import { useWallet } from '@/contexts/WalletContext'
 import instance from '@/utils/axios'
 import { useInitData } from '@telegram-apps/sdk-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTheme } from 'next-themes'
 const ContactsPage = () => {
   const initData = useInitData()
+  const { theme } = useTheme()
   const [contacts, setContacts] = useState([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
@@ -46,7 +48,7 @@ const ContactsPage = () => {
   }, [])
 
   return (
-    <div className="p-2">
+    <div className={`p-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
       <Contacts
         isOpen={true}
         user={currentUser}
