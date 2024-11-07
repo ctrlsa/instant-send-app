@@ -5,24 +5,18 @@ import { motion } from "framer-motion";
 import { useInitData } from "@telegram-apps/sdk-react";
 import { User, Wallet as WalletIcon } from "lucide-react";
 import instance from "@/utils/axios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 import Contacts from "@/components/Contacts";
 import TokenBalances from "@/components/TokenBalances";
 import { useWallet } from "@/contexts/WalletContext";
-import { login, createPassword, checkPasswordExists } from "@/utils/auth";
-
-import { toast } from "sonner";
-import Auth from "@/components/Auth";
 
 export default function Home() {
   const initData = useInitData();
   const [contacts, setContacts] = useState([]);
   const { walletSolana } = useWallet();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [hasPassword, setHasPassword] = useState(false);
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined;
@@ -44,35 +38,8 @@ export default function Home() {
   useEffect(() => {
     if (currentUser) {
       getContacts();
-      checkPasswordExists(currentUser.id).then(setHasPassword);
     }
   }, [currentUser]);
-
-  const handleAuth = async (password: string) => {
-    if (!currentUser) return;
-
-    if (hasPassword) {
-      const success = await login(currentUser, password);
-      if (success) {
-        toast("Login successful.");
-        setIsAuthenticated(true);
-      } else {
-        toast("Login failed. Please try again.");
-      }
-    } else {
-      const success = await createPassword(currentUser, password);
-      if (success) {
-        setHasPassword(true);
-        setIsAuthenticated(true);
-      } else {
-        toast("Password creation failed. Please try again.");
-      }
-    }
-  };
-
-  if (!isAuthenticated) {
-    return <Auth hasPassword={hasPassword} handleAuth={handleAuth} />;
-  }
 
   return (
     <motion.div

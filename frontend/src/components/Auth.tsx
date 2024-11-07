@@ -1,25 +1,74 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Lock, Unlock, Eye, EyeOff, Info } from "lucide-react";
 import ctrl from "@/app/_assets/ctrl.svg";
 import Image from "next/image";
+import { useInitData } from "@telegram-apps/sdk-react";
+import { checkPasswordExists, login, createPassword } from "@/utils/auth";
+import { toast } from "sonner";
 
 interface AuthProps {
-  hasPassword: boolean;
-  handleAuth: (password: string) => void;
+  children: React.ReactNode;
 }
-export default function Auth({ hasPassword, handleAuth }: AuthProps) {
+
+export default function Auth({ children }: AuthProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
 
-  const handleSubmit = async (e: any) => {
+  const initData = useInitData();
+
+  const currentUser = React.useMemo(() => {
+    if (!initData?.user) return undefined;
+    const { id, username, firstName, lastName } = initData.user;
+    return { id: id.toString(), username, name: `${firstName} ${lastName}` };
+  }, [initData]);
+
+  useEffect(() => {
+    if (currentUser) {
+      checkPasswordExists(currentUser.id).then(setHasPassword);
+    }
+  }, [currentUser]);
+
+  const handleAuth = async (password: string) => {
+    if (!currentUser) return;
+
+    setIsLoading(true);
+    try {
+      if (hasPassword) {
+        const success = await login(currentUser, password);
+        if (success) {
+          toast.success("Login successful.");
+          setIsAuthenticated(true);
+        } else {
+          setError("Login failed. Please try again.");
+        }
+      } else {
+        const success = await createPassword(currentUser, password);
+        if (success) {
+          setHasPassword(true);
+          setIsAuthenticated(true);
+          toast.success("Password created successfully.");
+        } else {
+          setError("Password creation failed. Please try again.");
+        }
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -28,17 +77,19 @@ export default function Auth({ hasPassword, handleAuth }: AuthProps) {
       return;
     }
 
-    setIsLoading(true);
-    handleAuth(password);
-    setIsLoading(false);
+    await handleAuth(password);
   };
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
 
+  if (isAuthenticated) {
+    return <>{children}</>;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col items-center bg-background">
+    <div className="min-h-screen flex flex-col items-center bg-background mt-16">
       <Image
         src={ctrl}
         alt="ctrl"

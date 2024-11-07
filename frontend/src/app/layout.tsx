@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { Root } from "@/components/Root/Root";
 import Navbar from "@/components/NavBar";
-import BottomNav from "@/components/BottomNav";
+import Auth from "@/components/Auth";
 
 import "@telegram-apps/telegram-ui/dist/styles.css";
 import "normalize.css/normalize.css";
@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/themeprovider";
 import { Toaster } from "@/components/ui/sonner";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { CSPostHogProvider } from "@/contexts/PostHogProvider";
+import BottomNav from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   title: "Instant Send App by CTRL",
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: PropsWithChildren) {
               <Toaster />
               <Root>
                 <Navbar />
-                <main className="pt-16 pb-16"> {children}</main>
+                <Auth>
+                  <main className="pt-16 pb-16"> {children}</main>
+                </Auth>
+
                 <BottomNav />
               </Root>
             </WalletProvider>
