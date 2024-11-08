@@ -170,11 +170,9 @@ export default function TransactionsPage() {
     const fetchTransactions = async () => {
       try {
         if (walletSolana && walletSolana.publicKey) {
-          console.log(walletSolana.publicKey)
           const connection = new Connection('https://api.devnet.solana.com')
           const pubKey = new PublicKey(walletSolana.publicKey)
           const signatures = await connection.getSignaturesForAddress(pubKey)
-          console.log(signatures)
           const transactionData = await Promise.all(
             signatures.map(async (sig) => {
               const tx = await connection.getTransaction(sig.signature, { commitment: 'finalized' })
@@ -192,6 +190,7 @@ export default function TransactionsPage() {
           setTransactions(transactionData)
         }
       } catch (error) {
+        toast.error('Failed to fetch transactions')
         console.error(error)
       }
     }
