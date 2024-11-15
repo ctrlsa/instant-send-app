@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { URLSearchParams } from "url";
 import crypto from "crypto";
+import { validateWebAppData } from "@grammyjs/validator";
 
 interface User {
   id?: string;
@@ -78,39 +79,44 @@ export const authorizeUser = async (
     let userId: string | undefined;
 
     const initData = telegramInitData.initData;
-
+    const url = new URLSearchParams(initData);
+    console.log(url);
+    // console.log(initData);
+    // const url = "https://grammy.dev?" + initData;
+    // const resp = await fetch(url);
+    // console.log(resp);
+    // console.log(url.searchParams);
     if (initData) {
-      const { message, user: telegramUser } =
-        validateTelegramWebAppData(initData);
-      console.log("Telegram user:", telegramUser, message);
-      if (message !== "Validation successful")
-        return res.status(401).json({ error: message });
-
-      user = telegramUser;
-      userId = user.id;
-    } else if (authHeader) {
-      const [scheme, token] = authHeader.split(" ");
-      if (scheme !== "Bearer" || !token)
-        return res.status(401).json({ error: "Invalid authorization format" });
-
-      const payload = jwt.verify(token, SECRET_KEY) as any;
-      if (!payload)
-        return res.status(401).json({ error: "Unauthorized: Invalid token" });
-
-      userId = payload.address;
-      user = payload;
-    } else {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: Missing credentials" });
+      const message = validateWebAppData(BOT_TOKEN as string, url);
+      console.log("Telegram user:", message);
+      // if (message !== "Validation successful")
+      //   return res.status(401).json({ error: message });
+      // user = telegramUser;
+      // userId = user.id;
     }
+    //  else if (authHeader) {
+    //   const [scheme, token] = authHeader.split(" ");
+    //   if (scheme !== "Bearer" || !token)
+    //     return res.status(401).json({ error: "Invalid authorization format" });
 
-    if (!userId)
-      return res.status(401).json({ error: "Unauthorized: Address missing" });
+    //   const payload = jwt.verify(token, SECRET_KEY) as any;
+    //   if (!payload)
+    //     return res.status(401).json({ error: "Unauthorized: Invalid token" });
 
-    (req as any).user = user;
-    (req as any).userId = userId;
-    console.log("Authorized user:", userId);
+    //   userId = payload.address;
+    //   user = payload;
+    // } else {
+    //   return res
+    //     .status(401)
+    //     .json({ error: "Unauthorized: Missing credentials" });
+    // }
+
+    // if (!userId)
+    //   return res.status(401).json({ error: "Unauthorized: Address missing" });
+
+    // (req as any).user = user;
+    // (req as any).userId = userId;
+    // console.log("Authorized user:", userId);
 
     next();
   } catch (error) {
