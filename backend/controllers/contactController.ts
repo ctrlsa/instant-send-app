@@ -33,10 +33,6 @@ export const getContacts = async (req: Request, res: Response) => {
       })
     );
 
-    console.log(
-      "Getting contact names with optional solana addresses...",
-      contactNames
-    );
     res.json(contactNames);
   } catch (err) {
     console.error(err);
