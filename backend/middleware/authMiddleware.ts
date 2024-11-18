@@ -29,7 +29,7 @@ export const authorizeUser = async (
   try {
     const initData = req.query.initData as string;
     const telegramInitData = JSON.parse(initData).initData;
-    // console.log(telegramInitData);
+    console.log(telegramInitData);
     const result = validateTelegramWebAppData(telegramInitData);
     console.log(result);
 
