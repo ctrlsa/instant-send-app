@@ -22,6 +22,10 @@ const ContactsPage = () => {
     try {
       setIsFetchingContacts(true)
       if (currentUser?.id) {
+        const WebApp = (await import('@twa-dev/sdk')).default
+        WebApp.ready()
+        console.log(WebApp)
+        const initData = WebApp.initData
         const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
           params: {
             initData: JSON.stringify(initData)
