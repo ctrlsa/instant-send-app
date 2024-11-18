@@ -131,11 +131,11 @@ export const authorizeUser = async (
       delete result.hash;
       delete result.auth_date;
 
-      console.log(result);
+      console.log(result.user);
 
       const isValid = validateWebAppData(
         BOT_TOKEN as string,
-        new URLSearchParams(result)
+        new URLSearchParams(result.user)
       );
       console.log("is valid", isValid);
     }
