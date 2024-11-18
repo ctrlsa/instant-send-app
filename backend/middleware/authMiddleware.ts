@@ -78,45 +78,67 @@ export const authorizeUser = async (
     let user: User = {};
     let userId: string | undefined;
 
-    const initData = telegramInitData.initData;
-    const url = new URLSearchParams(initData);
-    console.log(url);
-    // console.log(initData);
+    const initData = telegramInitData.initData; // Parse the `initData` string
+    console.log(initData);
+
+    // const url = new URLSearchParams(initData.user);
+    // console.log(url);
+    // console.log(initData.user);
     // const url = "https://grammy.dev?" + initData;
     // const resp = await fetch(url);
     // console.log(resp);
-    // console.log(url.searchParams);
+    // console.log(url);
+    const initDataString = new URLSearchParams(
+      telegramInitData.user
+    ).toString(); // Convert to query string
+    const initDataParams = new URLSearchParams(initDataString); // Convert to URLSearchParams
+
     if (initData) {
-      const message = validateWebAppData(BOT_TOKEN as string, url);
-      console.log("Telegram user:", message);
-      // if (message !== "Validation successful")
-      //   return res.status(401).json({ error: message });
-      // user = telegramUser;
-      // userId = user.id;
+      const toSnakeCase: any = (obj: any) => {
+        if (Array.isArray(obj)) {
+          return obj.map((item) => toSnakeCase(item));
+        } else if (typeof obj === "object" && obj !== null) {
+          return Object.entries(obj).reduce(
+            (acc: Record<string, any>, [key, value]) => {
+              const snakeKey = key.replace(
+                /[A-Z]/g,
+                (letter) => `_${letter.toLowerCase()}`
+              );
+              acc[snakeKey] = toSnakeCase(value);
+              return acc;
+            },
+            {} as Record<string, any>
+          );
+        }
+        return obj;
+      };
+
+      // Convert keys and restructure the data
+      const snakeCaseData = toSnakeCase(initData);
+
+      const modifiedUser = {
+        ...snakeCaseData.user,
+        hash: snakeCaseData.hash,
+        auth_date: snakeCaseData.auth_date,
+      };
+
+      const result = {
+        ...snakeCaseData,
+        user: modifiedUser,
+      };
+
+      // Remove hash and auth_date from the top-level
+      delete result.hash;
+      delete result.auth_date;
+
+      console.log(result);
+
+      const isValid = validateWebAppData(
+        BOT_TOKEN as string,
+        new URLSearchParams(result)
+      );
+      console.log("is valid", isValid);
     }
-    //  else if (authHeader) {
-    //   const [scheme, token] = authHeader.split(" ");
-    //   if (scheme !== "Bearer" || !token)
-    //     return res.status(401).json({ error: "Invalid authorization format" });
-
-    //   const payload = jwt.verify(token, SECRET_KEY) as any;
-    //   if (!payload)
-    //     return res.status(401).json({ error: "Unauthorized: Invalid token" });
-
-    //   userId = payload.address;
-    //   user = payload;
-    // } else {
-    //   return res
-    //     .status(401)
-    //     .json({ error: "Unauthorized: Missing credentials" });
-    // }
-
-    // if (!userId)
-    //   return res.status(401).json({ error: "Unauthorized: Address missing" });
-
-    // (req as any).user = user;
-    // (req as any).userId = userId;
-    // console.log("Authorized user:", userId);
 
     next();
   } catch (error) {
