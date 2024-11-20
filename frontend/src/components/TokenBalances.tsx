@@ -41,6 +41,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const [connection, setConnection] = useState<Connection | null>(null)
   const [tokens, setTokens] = useState<TokenWithPrice[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedToken, setSelectedToken] = useState<TokenWithPrice | null>(
     defaultToken ? (tokenList.find((token) => token.symbol === defaultToken) ?? null) : null
   )
@@ -48,18 +49,28 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const [sendAmount, setSendAmount] = useState('')
   const [recipient, setRecipient] = useState('')
 
-  const updateTokenBalances = useCallback(async () => {
-    if (!walletSolana || !connection) return
-    try {
-      const balances = await fetchTokenBalances(connection, walletSolana.publicKey, tokenList)
-      setTokens(balances)
-      setLoading(false)
-    } catch (error) {
-      console.error('Error fetching token balances:', error)
-      toast.error('Failed to fetch token balances')
-      setLoading(false)
-    }
-  }, [walletSolana, connection])
+  const updateTokenBalances = useCallback(
+    async (isRefreshAction = false) => {
+      if (!walletSolana || !connection) return
+
+      try {
+        isRefreshAction ? setIsRefreshing(true) : setLoading(true)
+        const balances = await fetchTokenBalances(connection, walletSolana.publicKey, tokenList)
+        setTokens(balances)
+
+        if (isRefreshAction) {
+          toast.success('Token balances updated')
+        }
+      } catch (error) {
+        console.error('Error fetching token balances:', error)
+        toast.error('Failed to fetch token balances')
+      } finally {
+        setLoading(false)
+        setIsRefreshing(false)
+      }
+    },
+    [walletSolana, connection]
+  )
 
   useEffect(() => {
     const conn = new Connection('https://api.devnet.solana.com', 'confirmed')
@@ -129,100 +140,123 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-row justify-between">
+        <div className="flex flex-row justify-between items-center">
           <CardTitle>Token Balances</CardTitle>
-          <RefreshCcw
-            className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
-            onClick={async () => await updateTokenBalances()}
-          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => updateTokenBalances(true)}
+            disabled={loading || isRefreshing}
+          >
+            <RefreshCcw className={cn('h-4 w-4', (loading || isRefreshing) && 'animate-spin')} />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            {tokens.map((token) => (
-              <motion.div
-                key={token.symbol}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="cursor-pointer"
-                onClick={() => setSelectedToken(token)}
-              >
-                <Card
-                  className={cn(
-                    selectedToken?.symbol === token.symbol && 'border-2 border-primary'
-                  )}
-                >
-                  <CardContent className="flex flex-col items-center justify-center p-4">
-                    <span className="text-2xl mb-2">{token.icon}</span>
-                    <h3 className="font-bold">{token.symbol}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {formatBalance(token.balance ? token.balance : 0)}
-                    </p>
-                    {token.usdPrice && token.balance ? (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatUSD(token.balance * token.usdPrice)}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground mt-1">{formatUSD(0)}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+        {loading && !tokens.length ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-
-          <AnimatePresence>
-            {selectedToken && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-4"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
-                  <Button variant="ghost" size="icon" onClick={() => setSelectedToken(null)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={sendAmount}
-                    onChange={(e) => setSendAmount(e.target.value)}
-                    placeholder="Enter amount"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="recipient">Recipient</Label>
-                  <Select onValueChange={setRecipient} value={recipient}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select recipient" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contacts.map((contact) => (
-                        <SelectItem key={contact.id} value={contact.id}>
-                          {contact.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="w-full" onClick={handleSend} disabled={loading}>
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  Send {selectedToken.symbol}
-                </Button>
-              </motion.div>
+        ) : (
+          <div className="space-y-4">
+            {tokens.length > 0 ? (
+              <div className="grid grid-cols-3 gap-4">
+                {tokens.map((token) => (
+                  <motion.div
+                    key={token.symbol}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedToken(token)}
+                  >
+                    <Card
+                      className={cn(
+                        'transition-all duration-200',
+                        selectedToken?.symbol === token.symbol && 'border-2 border-primary'
+                      )}
+                    >
+                      <CardContent className="flex flex-col items-center justify-center p-4">
+                        <span className="text-2xl mb-2">{token.icon}</span>
+                        <h3 className="font-bold">{token.symbol}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {formatBalance(token.balance ? token.balance : 0)}
+                        </p>
+                        {token.usdPrice && token.balance ? (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatUSD(token.balance * token.usdPrice)}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground mt-1">{formatUSD(0)}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">No tokens found</div>
             )}
-          </AnimatePresence>
-        </div>
+
+            <AnimatePresence>
+              {selectedToken && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedToken(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Send Form */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Amount</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        value={sendAmount}
+                        onChange={(e) => setSendAmount(e.target.value)}
+                        placeholder="Enter amount"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="recipient">Recipient</Label>
+                      <Select onValueChange={setRecipient} value={recipient}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select recipient" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contacts.map((contact) => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                              {contact.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={handleSend}
+                      disabled={loading || isRefreshing}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Send {selectedToken.symbol}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
