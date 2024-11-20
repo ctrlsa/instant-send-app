@@ -1,14 +1,15 @@
 'use client'
 import Contacts from '@/components/Contacts'
 import { useWallet } from '@/contexts/WalletContext'
-import instance from '@/utils/axios'
+import { contactsApi } from '@/services/api'
 import { useInitData } from '@telegram-apps/sdk-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTheme } from 'next-themes'
+import { Contact } from '@/types/index'
 const ContactsPage = () => {
   const initData = useInitData()
   const { theme } = useTheme()
-  const [contacts, setContacts] = useState([])
+  const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
 
@@ -22,16 +23,12 @@ const ContactsPage = () => {
     try {
       setIsFetchingContacts(true)
       if (currentUser?.id) {
-        const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
-          params: {
-            initData: JSON.stringify(initData)
-          }
-        })
-        setContacts(res.data)
+        const contacts = await contactsApi.getContacts(currentUser.id, initData)
+        setContacts(contacts)
       }
-      setIsFetchingContacts(false)
     } catch (e) {
       console.error(e)
+    } finally {
       setIsFetchingContacts(false)
     }
   }

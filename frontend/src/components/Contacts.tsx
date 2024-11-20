@@ -2,7 +2,15 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronsUpDown, Contact, Trash, RefreshCw, Info, Search, Copy } from 'lucide-react'
+import {
+  ChevronsUpDown,
+  Contact as ContactIcon,
+  Trash,
+  RefreshCw,
+  Info,
+  Search,
+  Copy
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -18,15 +26,10 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent } from '@/components/ui/card'
-import instance from '@/utils/axios'
+import { contactsApi } from '@/services/api'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
-
-interface Contact {
-  id: string
-  name: string
-  username: string
-}
+import { Contact } from '@/types/index'
 
 interface ContactsProps {
   contacts: Contact[]
@@ -56,11 +59,10 @@ export default function Contacts({
   }, [contacts, searchQuery])
 
   const handleDeleteContact = async (contactId: string) => {
-    console.log('Deleting contact with id:', contactId)
     try {
       setIsLoading(true)
-      const userId = user.id
-      await instance.delete(`contacts/deleteContact/${userId}/${contactId}`)
+      console.log('deleting')
+      await contactsApi.deleteContact(user.id, contactId)
       toast.success('Contact deleted successfully')
       handleRefresh()
     } catch (err) {
@@ -83,7 +85,7 @@ export default function Contacts({
   return (
     <motion.div animate={isOpenCollapsible ? 'open' : 'closed'}>
       <div className="flex flex-row items-center justify-between mt-3 ml-3 ">
-        <Contact className="h-4 w-4" />
+        <ContactIcon className="h-4 w-4" />
         <span>Contacts</span>
         <motion.button
           whileTap={{ scale: 0.97 }}
