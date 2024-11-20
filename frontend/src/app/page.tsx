@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useInitData } from '@telegram-apps/sdk-react'
 import { User, Wallet as WalletIcon } from 'lucide-react'
-import instance from '@/utils/axios'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -12,10 +11,12 @@ import Link from 'next/link'
 import Contacts from '@/components/Contacts'
 import TokenBalances from '@/components/TokenBalances'
 import { useWallet } from '@/contexts/WalletContext'
+import { contactsApi } from '@/services/api'
+import { Contact } from '@/types'
 
 export default function Home() {
   const initData = useInitData()
-  const [contacts, setContacts] = useState([])
+  const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
 
@@ -28,12 +29,9 @@ export default function Home() {
   const getContacts = async () => {
     try {
       if (currentUser?.id) {
-        const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
-          params: {
-            initData: JSON.stringify(initData)
-          }
-        })
-        setContacts(res.data)
+        const res = await contactsApi.getContacts(currentUser.id, initData)
+
+        setContacts(res)
         setIsFetchingContacts(false)
       }
     } catch (e) {

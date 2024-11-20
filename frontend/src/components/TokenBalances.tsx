@@ -23,7 +23,7 @@ import { fetchTokenBalances, sendTokens, Token } from '@/utils/solanaUtils'
 type Contact = {
   id: string
   name: string
-  solanaAddress: string
+  solanaAddress?: string
 }
 
 type TokenBalancesProps = {

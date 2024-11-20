@@ -18,7 +18,7 @@ import {
 import { Wallet } from '@/utils/wallet'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion } from 'framer-motion'
-import instance from '@/utils/axios'
+import { walletApi } from '@/services/api'
 
 interface WalletDetailsProps {
   wallet: Wallet | null
@@ -44,7 +44,7 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
   const handleDeleteWallet = async () => {
     try {
       onWalletDelete()
-      await instance.delete(`/wallet/deleteSolanaWallet/${user.id}`)
+      await walletApi.deleteWallet(user.id)
 
       toast.success('Solana Wallet deleted successfully!')
     } catch (err) {

@@ -4,15 +4,16 @@ import { motion } from 'framer-motion'
 import TokenBalances from '@/components/TokenBalances'
 import { useEffect, useMemo, useState } from 'react'
 import { Wallet as WalletIcon } from 'lucide-react'
-import instance from '@/utils/axios'
 import { useInitData } from '@telegram-apps/sdk-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { contactsApi } from '@/services/api'
+import { Contact } from '@/types'
 
 const SendPage = () => {
   const initData = useInitData()
-  const [contacts, setContacts] = useState([])
+  const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
 
   const currentUser = useMemo(() => {
@@ -23,12 +24,8 @@ const SendPage = () => {
 
   const getContacts = async () => {
     if (currentUser?.id) {
-      const res = await instance.get(`contacts/getContacts/${currentUser.id}`, {
-        params: {
-          initData: JSON.stringify(initData)
-        }
-      })
-      setContacts(res.data)
+      const contacts = await contactsApi.getContacts(currentUser.id, initData)
+      setContacts(contacts)
     }
   }
 

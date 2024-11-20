@@ -17,14 +17,15 @@ export const contactsApi = {
 }
 
 export const walletApi = {
-  addWallet: async (userId: string, solanaAddress: string): Promise<void> => {
-    await instance.post(`wallet/add`, {
+  addWallet: async (userId: string, userName: string, solanaAddress: string): Promise<void> => {
+    await instance.post(`wallet/addWallet`, {
       id: userId,
+      name: userName,
       solanaAddress
     })
   },
 
   deleteWallet: async (userId: string): Promise<void> => {
-    await instance.delete(`wallet/${userId}`)
+    await instance.delete(`wallet/deleteSolanaWallet/${userId}`)
   }
 }

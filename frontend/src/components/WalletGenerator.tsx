@@ -13,7 +13,7 @@ import {
   createMnemonic,
   validateWalletMnemonic
 } from '../utils/wallet'
-import instance from '@/utils/axios'
+import { walletApi } from '@/services/api'
 
 interface WalletGeneratorProps {
   wallet: Wallet | null
@@ -66,11 +66,8 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({ wallet, onWalletCreat
       const newWallet = generateWalletFromMnemonic(pathType, mnemonic, 0) // Only 1 account (index 0)
       if (newWallet) {
         onWalletCreated(newWallet)
-        await instance.post('/wallet/addWallet', {
-          id: user.id,
-          name: user.name,
-          solanaAddress: newWallet.publicKey
-        })
+        await walletApi.addWallet(user.id, user.name, newWallet.publicKey)
+
         toast.success('Wallet generated successfully!')
 
         // Clear mnemonic after 60 seconds
