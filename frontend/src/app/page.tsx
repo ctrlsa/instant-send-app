@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useInitData } from '@telegram-apps/sdk-react'
-import { User, Wallet as WalletIcon } from 'lucide-react'
+import { User, Wallet as WalletIcon, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 import Contacts from '@/components/Contacts'
 import TokenBalances from '@/components/TokenBalances'
@@ -19,6 +20,7 @@ export default function Home() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined
@@ -26,29 +28,35 @@ export default function Home() {
     return { id: id.toString(), username, name: `${firstName} ${lastName}` }
   }, [initData])
 
-  const getContacts = async () => {
-    try {
-      if (currentUser?.id) {
-        const res = await contactsApi.getContacts(currentUser.id, initData)
+  const getContacts = useCallback(
+    async (isRefreshAction = false) => {
+      try {
+        isRefreshAction ? setIsRefreshing(true) : setIsFetchingContacts(true)
 
-        setContacts(res)
+        if (currentUser?.id) {
+          const res = await contactsApi.getContacts(currentUser.id, initData)
+          setContacts(res)
+
+          if (isRefreshAction) {
+            toast.success('Contacts updated successfully')
+          }
+        }
+      } catch (e) {
+        console.error(e)
+        toast.error('Failed to fetch contacts')
+      } finally {
         setIsFetchingContacts(false)
+        setIsRefreshing(false)
       }
-    } catch (e) {
-      console.error(e)
-      setIsFetchingContacts(false)
-    }
-  }
+    },
+    [currentUser?.id, initData]
+  )
+
   useEffect(() => {
     if (currentUser) {
       getContacts()
     }
-  }, [])
-  useEffect(() => {
-    if (currentUser) {
-      getContacts()
-    }
-  }, [currentUser])
+  }, [currentUser, getContacts])
 
   return (
     <motion.div
@@ -89,12 +97,22 @@ export default function Home() {
         {/* Contacts */}
         <Card>
           <CardContent>
-            <Contacts
-              user={currentUser}
-              contacts={contacts}
-              handleRefresh={getContacts}
-              isFetching={isFetchingContacts}
-            />
+            {isFetchingContacts && !contacts.length ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (
+              <div>
+                <div className="flex justify-between items-center mb-4"></div>
+                <Contacts
+                  user={currentUser}
+                  contacts={contacts}
+                  handleRefresh={() => getContacts(true)}
+                  isFetching={isFetchingContacts}
+                  isRefreshing={isRefreshing}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 

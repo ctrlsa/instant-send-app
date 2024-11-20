@@ -9,7 +9,8 @@ import {
   RefreshCw,
   Info,
   Search,
-  Copy
+  Copy,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,6 +38,7 @@ interface ContactsProps {
   user: any
   isOpen?: boolean
   isFetching?: boolean
+  isRefreshing?: boolean
 }
 
 export default function Contacts({
@@ -44,7 +46,7 @@ export default function Contacts({
   handleRefresh = () => {},
   user,
   isOpen,
-  isFetching
+  isRefreshing
 }: ContactsProps) {
   const [isOpenCollapsible, setIsOpenCollapsible] = useState(isOpen ? true : false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -122,8 +124,19 @@ export default function Contacts({
                   className="pl-8 pr-4 py-2 w-full"
                 />
               </div>
-              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 ${isLoading || isFetching ? 'animate-spin' : ''}`} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoading || isRefreshing}
+              >
+                {isRefreshing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
               </Button>
             </div>
             <div className="max-h-[300px] overflow-auto space-y-2">
