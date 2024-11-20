@@ -53,15 +53,37 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
     }
   }
 
-  const copyToClipboard = (content: string, isPublic: boolean) => {
-    navigator.clipboard.writeText(content)
-    toast.success('Copied to clipboard!')
-    if (isPublic) {
-      setCopiedPublic(true)
-      setTimeout(() => setCopiedPublic(false), 2000)
-    } else {
-      setCopiedPrivate(true)
-      setTimeout(() => setCopiedPrivate(false), 2000)
+  const copyToClipboard = async (content: string, isPublic: boolean) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      toast.success('Copied to clipboard!')
+      if (isPublic) {
+        setCopiedPublic(true)
+        setTimeout(() => setCopiedPublic(false), 2000)
+      } else {
+        setCopiedPrivate(true)
+        setTimeout(() => setCopiedPrivate(false), 2000)
+      }
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea')
+      textArea.value = content
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        toast.success('Copied to clipboard!')
+        if (isPublic) {
+          setCopiedPublic(true)
+          setTimeout(() => setCopiedPublic(false), 2000)
+        } else {
+          setCopiedPrivate(true)
+          setTimeout(() => setCopiedPrivate(false), 2000)
+        }
+      } catch (err) {
+        toast.error('Failed to copy to clipboard')
+      }
+      document.body.removeChild(textArea)
     }
   }
 
