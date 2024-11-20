@@ -28,11 +28,12 @@ export const authorizeUser = async (
 ): Promise<any> => {
   try {
     const initData = req.query.initData as string;
-    const telegramInitData = JSON.parse(initData).initData;
-    console.log(telegramInitData);
-    const result = validateTelegramWebAppData(telegramInitData);
-    console.log(result);
-
+    if (initData) {
+      const telegramInitData = JSON.parse(initData).initData;
+      console.log(telegramInitData);
+      const result = validateTelegramWebAppData(telegramInitData);
+      console.log(result);
+    }
     next();
   } catch (error) {
     console.error("Authorization error:", error);
