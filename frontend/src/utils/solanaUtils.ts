@@ -23,11 +23,75 @@ export type Token = {
   mintAddress: string
 }
 
+export type TokenWithPrice = Token & {
+  usdPrice?: number
+}
+
+type BinancePrice = {
+  symbol: string
+  price: string
+}
+
+async function fetchTokenPrices(symbols: string[]): Promise<Record<string, number>> {
+  const binanceSymbols: Record<string, string> = {
+    SOL: 'SOLUSDT',
+    BONK: 'BONKUSDT'
+  }
+
+  try {
+    const response = await fetch('https://api.binance.com/api/v3/ticker/price')
+    if (!response.ok) {
+      throw new Error('Failed to fetch prices')
+    }
+
+    const data: BinancePrice[] = await response.json()
+
+    const prices: Record<string, number> = {}
+    symbols.forEach((symbol) => {
+      prices[symbol] = 0
+    })
+
+    symbols.forEach((symbol) => {
+      if (symbol === 'USDC') {
+        prices[symbol] = 1 // USDC is always $1
+        return
+      }
+      if ((symbol = 'SOL')) {
+        console.log('SOL Price', prices[symbol])
+      }
+
+      const binanceSymbol = binanceSymbols[symbol]
+      if (binanceSymbol) {
+        const price = data.find((p) => p.symbol === binanceSymbol)
+        if (price) {
+          prices[symbol] = parseFloat(price.price)
+        }
+      }
+    })
+
+    return prices
+  } catch (error) {
+    console.error('Error fetching token prices:', error)
+    return symbols.reduce(
+      (acc, symbol) => ({
+        ...acc,
+        [symbol]: symbol === 'USDC' ? 1 : 0
+      }),
+      {}
+    )
+  }
+}
+
+const PRICE_CACHE_DURATION = 30000 // 30 seconds
+
+let priceCache: Record<string, number> = {}
+let lastPriceFetch = 0
+
 export const fetchTokenBalances = async (
   connection: Connection,
   walletPublicKey: string,
   tokenList: Omit<Token, 'balance'>[]
-): Promise<Token[]> => {
+): Promise<TokenWithPrice[]> => {
   const userPublicKey = new PublicKey(walletPublicKey)
 
   const balances = await Promise.all(
@@ -71,7 +135,17 @@ export const fetchTokenBalances = async (
     })
   )
 
-  return balances
+  // Check if we need to refresh prices
+  const now = Date.now()
+  if (now - lastPriceFetch > PRICE_CACHE_DURATION) {
+    priceCache = await fetchTokenPrices(tokenList.map((t) => t.symbol))
+    lastPriceFetch = now
+  }
+
+  return balances.map((token) => ({
+    ...token,
+    usdPrice: priceCache[token.symbol]
+  }))
 }
 
 export const sendTokens = async (

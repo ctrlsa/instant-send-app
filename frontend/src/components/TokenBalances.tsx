@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import { useWallet } from '@/contexts/WalletContext'
 import { tokenList } from '@/utils/tokens'
 import { fetchTokenBalances, sendTokens, Token } from '@/utils/solanaUtils'
+import { cn } from '@/lib/utils'
 
 type Contact = {
   id: string
@@ -31,12 +32,16 @@ type TokenBalancesProps = {
   defaultToken?: string
 }
 
+type TokenWithPrice = Token & {
+  usdPrice?: number
+}
+
 export default function TokenBalances({ contacts, defaultToken }: TokenBalancesProps) {
   const { walletSolana } = useWallet()
   const [connection, setConnection] = useState<Connection | null>(null)
-  const [tokens, setTokens] = useState<Token[]>([])
+  const [tokens, setTokens] = useState<TokenWithPrice[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedToken, setSelectedToken] = useState<Token | null>(
+  const [selectedToken, setSelectedToken] = useState<TokenWithPrice | null>(
     defaultToken ? (tokenList.find((token) => token.symbol === defaultToken) ?? null) : null
   )
 
@@ -72,6 +77,13 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       minimumFractionDigits: 2,
       maximumFractionDigits: 6
     })
+  }
+
+  const formatUSD = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
   }
 
   const handleSend = async () => {
@@ -136,13 +148,24 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                 className="cursor-pointer"
                 onClick={() => setSelectedToken(token)}
               >
-                <Card>
+                <Card
+                  className={cn(
+                    selectedToken?.symbol === token.symbol && 'border-2 border-primary'
+                  )}
+                >
                   <CardContent className="flex flex-col items-center justify-center p-4">
                     <span className="text-2xl mb-2">{token.icon}</span>
                     <h3 className="font-bold">{token.symbol}</h3>
                     <p className="text-sm text-muted-foreground">
                       {formatBalance(token.balance ? token.balance : 0)}
                     </p>
+                    {token.usdPrice && token.balance ? (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatUSD(token.balance * token.usdPrice)}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">{formatUSD(0)}</p>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
