@@ -57,6 +57,10 @@ export function setAuthenticationTimestamp(userId: string): void {
 }
 
 export function checkAuthenticationValidity(userId: string): boolean {
+  if (!localStorage.getItem(`user_${userId}_ctrl_wallet`)) {
+    return true
+  }
+
   const timestamp = localStorage.getItem(`user_${userId}_auth_timestamp`)
   if (!timestamp) return false
 
@@ -66,4 +70,15 @@ export function checkAuthenticationValidity(userId: string): boolean {
 
 export function clearAuthenticationTimestamp(userId: string): void {
   localStorage.removeItem(`user_${userId}_auth_timestamp`)
+}
+
+export async function removePassword(user: User): Promise<boolean> {
+  try {
+    localStorage.removeItem(`user_${user.id}_ctrl_wallet`)
+    clearAuthenticationTimestamp(user.id)
+    return true
+  } catch (error) {
+    console.error('Password removal failed:', error)
+    return false
+  }
 }

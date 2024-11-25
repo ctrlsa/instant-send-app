@@ -40,10 +40,17 @@ export default function Auth({ children }: AuthProps) {
 
   useEffect(() => {
     if (currentUser) {
-      checkPasswordExists(currentUser.id).then(setHasPassword)
-      if (checkAuthenticationValidity(currentUser.id)) {
-        setIsAuthenticated(true)
-      }
+      checkPasswordExists(currentUser.id)
+        .then((exists) => {
+          setHasPassword(exists)
+          if (!exists || checkAuthenticationValidity(currentUser.id)) {
+            setIsAuthenticated(true)
+          }
+        })
+        .catch(() => {
+          setHasPassword(false)
+          setIsAuthenticated(true)
+        })
     }
   }, [currentUser])
 
