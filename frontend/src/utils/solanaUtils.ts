@@ -267,3 +267,13 @@ const sendTransaction = async (
   const signature = await connection.sendRawTransaction(rawTransaction)
   return signature
 }
+
+export const withdrawToExternalWallet = async (
+  connection: Connection,
+  wallet: Wallet,
+  selectedToken: Token,
+  sendAmount: string,
+  recipient: string
+): Promise<string> => {
+  return sendTokens(connection, wallet, selectedToken, sendAmount, recipient)
+}

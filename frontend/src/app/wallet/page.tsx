@@ -10,7 +10,9 @@ import { useInitData } from '@telegram-apps/sdk-react'
 import { Wallet } from '@/utils/wallet'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ExternalLink, Link2, LinkIcon, ScrollText } from 'lucide-react'
+import { ExternalLink, Link2, LinkIcon, ScrollText, LogOut } from 'lucide-react'
+import { withdrawToExternalWallet } from '@/utils/solanaUtils'
+import WithdrawToExternal from '@/components/WithdrawToExternal'
 
 export default function WalletManagement() {
   const initData = useInitData()
@@ -49,18 +51,19 @@ export default function WalletManagement() {
         </CardContent>
       </Card>
       {walletSolana && (
-        <div className="flex flex-row p-3 items-center justify-between">
+        <div className="flex flex-row p-3 items-center justify-between gap-2">
           <Link href="/transactions">
             <Button variant="default" className="text-xs">
               Transactions &nbsp;
               <ScrollText className="h-3 w-3 " />
             </Button>
           </Link>
-          <div>
+          <div className="flex gap-2">
             <Button variant="secondary" className="text-xs">
               View on Explorer &nbsp;
               <ExternalLink className="h-3 w-3" />
             </Button>
+            <WithdrawToExternal wallet={walletSolana} />
           </div>
         </div>
       )}
