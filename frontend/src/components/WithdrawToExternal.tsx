@@ -108,9 +108,9 @@ export default function WithdrawToExternal({ wallet }: WithdrawToExternalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="text-xs">
-          Withdraw &nbsp;
+        <Button variant="default">
           <LogOut className="h-3 w-3" />
+          &nbsp; Withdraw to external wallet
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
