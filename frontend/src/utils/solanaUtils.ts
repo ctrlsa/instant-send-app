@@ -423,18 +423,52 @@ export async function initializeEscrow(
   return tx
 }
 export async function redeemEscrow(
-  program: Program<InstantSendProgram>,
-  redeemerWallet: Keypair,
-  sender: PublicKey,
+  connection: Connection,
+  redeemerWallet: WalletType,
+  tokenMint: anchor.Address | null,
+  sender: anchor.Address,
   secret: string,
-  tokenMint: PublicKey | null
+  isSol: boolean
 ): Promise<void> {
-  const isSol = tokenMint === null
+  const keypair = Keypair.fromSecretKey(bs58.decode(redeemerWallet.privateKey))
+
+  const wallet = {
+    publicKey: keypair.publicKey,
+    signTransaction: async <T extends Transaction | anchor.web3.VersionedTransaction>(
+      tx: T
+    ): Promise<T> => {
+      if (tx instanceof Transaction) {
+        tx.partialSign(keypair)
+      } else {
+        // Handle VersionedTransaction if needed
+        tx.sign([keypair])
+      }
+      return tx
+    },
+    signAllTransactions: async <T extends Transaction | anchor.web3.VersionedTransaction>(
+      txs: T[]
+    ): Promise<T[]> => {
+      return txs.map((tx) => {
+        if (tx instanceof Transaction) {
+          tx.partialSign(keypair)
+        } else {
+          // Handle VersionedTransaction if needed
+          tx.sign([keypair])
+        }
+        return tx
+      })
+    }
+  }
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: 'processed'
+  })
+  const program = new Program<InstantSendProgram>(IDL as InstantSendProgram, provider)
+
   const secretHash = hashSecret(secret)
 
   // Derive escrow PDA
   const [escrowAccount] = await PublicKey.findProgramAddress(
-    [isSol ? ESCROW_SEED_SOL : ESCROW_SEED_SPL, secretHash],
+    [isSol ? ESCROW_SEED_SOL : ESCROW_SEED_SPL, new Uint8Array(secretHash)],
     program.programId
   )
 
@@ -445,22 +479,26 @@ export async function redeemEscrow(
         .redeemFundsSol(secret)
         .accounts({
           signer: redeemerWallet.publicKey,
-          sender,
+          sender: new PublicKey(sender),
           escrowAccount,
           recipient: new PublicKey(redeemerWallet.publicKey)
         })
-        .signers([redeemerWallet])
+        .signers([keypair])
     : program.methods
         .redeemFundsSpl(secret)
         .accounts({
           signer: redeemerWallet.publicKey,
-          sender,
+          sender: new PublicKey(sender),
           escrowAccount,
-          escrowTokenAccount: getAssociatedTokenAddressSync(tokenMint!, escrowAccount, true),
-          recipient: redeemerWallet.publicKey,
-          tokenMint: tokenMint!
+          escrowTokenAccount: getAssociatedTokenAddressSync(
+            new PublicKey(tokenMint!),
+            escrowAccount,
+            true
+          ),
+          recipient: new PublicKey(redeemerWallet.publicKey),
+          tokenMint: new PublicKey(tokenMint!)
         })
-        .signers([redeemerWallet])
+        .signers([keypair])
 
   const txSignature = await tx.rpc()
   console.log('Transaction Signature:', txSignature)

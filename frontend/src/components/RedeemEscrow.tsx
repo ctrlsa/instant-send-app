@@ -24,17 +24,16 @@ export const RedeemEscrow = () => {
 
     setLoading(true)
     try {
-      const signature = await redeemEscrow({
+      const signature = await redeemEscrow(
         connection,
-        wallet: walletSolana,
+        walletSolana,
+        isSol ? tokenList[0].mintAddress : tokenList[1].mintAddress,
+        walletSolana.publicKey,
         secret,
-        isSol,
-        token: isSol ? tokenList[0] : tokenList[1]
-      })
-
-      toast.success(
-        `Redeem successful! Signature: ${signature.slice(0, 8)}...${signature.slice(-8)}`
+        isSol
       )
+
+      toast.success(`Redeem successful! Signature: ${signature}`)
     } catch (error) {
       console.error('Failed to redeem:', error)
       toast.error(`Failed to redeem: ${error instanceof Error ? error.message : 'Unknown error'}`)
