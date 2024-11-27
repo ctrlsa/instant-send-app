@@ -41,7 +41,7 @@ export const EscrowOperations = () => {
       )
 
       if (signature) {
-        toast.success(`Transaction successful! Signature: ${signature.signature}`)
+        toast.success(`Transaction successful! Signature: ${signature}`)
       }
     } catch (error) {
       console.error('Failed to initialize escrow:', error)
