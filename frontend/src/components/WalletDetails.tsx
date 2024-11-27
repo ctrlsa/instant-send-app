@@ -89,18 +89,15 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
 
   return (
     <Card className="mt-4">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Wallet Details</CardTitle>
-      </CardHeader>
       <CardContent>
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 pt-4">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="space-y-2"
           >
-            <h3 className="text-lg font-semibold tracking-tight">Public Key</h3>
+            <h3 className="text-md font-semibold tracking-tight">Public Key</h3>
             <div className="relative group ">
               <p
                 className="text-sm h-10 text-muted-foreground font-medium break-all p-2 pr-16 bg-muted rounded-md transition-colors duration-300 group-hover:bg-muted/80"
@@ -114,7 +111,7 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
                 className=" absolute top-1 right-1 transition-opacity duration-300"
                 onClick={() => copyToClipboard(wallet.publicKey, true)}
               >
-                {copiedPublic ? <Check className="h-4 w-4 " /> : <Copy className="h-4 w-4" />}
+                {copiedPublic ? <Check className="h-3 w-3 " /> : <Copy className="h-3 w-3" />}
               </Button>
             </div>
           </motion.section>
@@ -125,7 +122,7 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-2"
           >
-            <h3 className="text-lg font-semibold tracking-tight">Private Key</h3>
+            <h3 className="text-md font-semibold tracking-tight">Private Key</h3>
             <div className="relative group">
               <p
                 className="text-sm text-muted-foreground h-10 font-medium break-all p-2 pr-20 bg-muted rounded-md transition-colors duration-300 group-hover:bg-muted/80"
@@ -139,14 +136,14 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
                   size="icon"
                   onClick={() => copyToClipboard(wallet.privateKey, false)}
                 >
-                  {copiedPrivate ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedPrivate ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setVisiblePrivateKey(!visiblePrivateKey)}
                 >
-                  {visiblePrivateKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {visiblePrivateKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                 </Button>
               </div>
             </div>

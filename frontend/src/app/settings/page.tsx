@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Settings, ExternalLink, List, Info, HelpCircle, Lock } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useRouter } from 'next/navigation'
@@ -88,7 +88,6 @@ const SettingsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Settings</CardTitle>
-          <CardDescription>Manage your app preferences and account settings</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-6">
