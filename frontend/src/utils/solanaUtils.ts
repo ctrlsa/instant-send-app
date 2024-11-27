@@ -3,7 +3,8 @@ import {
   PublicKey,
   Transaction,
   LAMPORTS_PER_SOL,
-  SystemProgram
+  SystemProgram,
+  Keypair
 } from '@solana/web3.js'
 import {
   getAssociatedTokenAddress,
@@ -15,6 +16,8 @@ import {
 import { Wallet } from '@/utils/wallet'
 import bs58 from 'bs58'
 import nacl from 'tweetnacl'
+import { mnemonicToSeedSync } from 'bip39'
+import { derivePath } from 'ed25519-hd-key'
 
 export type Token = {
   symbol: string
@@ -277,3 +280,34 @@ export const withdrawToExternalWallet = async (
 ): Promise<string> => {
   return sendTokens(connection, wallet, selectedToken, sendAmount, recipient)
 }
+
+export const retrieveMnemonic = (): string => {
+  const wallet = localStorage.getItem('Solana_wallet')
+  if (!wallet) {
+    throw new Error('No wallet found')
+  }
+  const walletParsed = JSON.parse(wallet)
+  const mnemonic = walletParsed.mnemonic
+  return mnemonic
+}
+
+export const deleteMnemonic = (): void => {
+  const wallet = localStorage.getItem('Solana_wallet')
+  if (!wallet) {
+    throw new Error('No wallet found')
+  }
+  const walletParsed = JSON.parse(wallet)
+  walletParsed.mnemonic = ''
+  localStorage.setItem('Solana_wallet', JSON.stringify(walletParsed))
+}
+
+export const hasMnemonic = (): boolean => {
+  const wallet = localStorage.getItem('Solana_wallet')
+  if (!wallet) {
+    return false
+  }
+  const walletParsed = JSON.parse(wallet)
+  return walletParsed.mnemonic !== ''
+}
+
+// Function to derive keypair from mnemonic (useful for verification)

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Eye, EyeOff, Lock, Unlock } from 'lucide-react'
+import { Eye, EyeOff, Lock, Unlock, Shield, Download, Trash2 } from 'lucide-react'
 import { useInitData } from '@telegram-apps/sdk-react'
 import { checkPasswordExists, createPassword, login, removePassword } from '@/utils/auth'
 import { toast } from 'sonner'
@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import { retrieveMnemonic, deleteMnemonic, hasMnemonic } from '@/utils/solanaUtils'
 
 export default function SecurityPage() {
   const [password, setPassword] = useState('')
@@ -29,6 +30,9 @@ export default function SecurityPage() {
   const [error, setError] = useState('')
   const [verificationPassword, setVerificationPassword] = useState('')
   const [verificationError, setVerificationError] = useState('')
+  const [showMnemonic, setShowMnemonic] = useState(false)
+  const [mnemonicBackedUp, setMnemonicBackedUp] = useState(false)
+  const [hasMnemonicPhrase, setHasMnemonicPhrase] = useState(false)
 
   const initData = useInitData()
   const currentUser = useMemo(() => {
@@ -42,6 +46,12 @@ export default function SecurityPage() {
       checkPasswordExists(currentUser.id).then(setHasPassword)
     }
   }, [currentUser])
+
+  useEffect(() => {
+    const exists = hasMnemonic()
+    setHasMnemonicPhrase(exists)
+    setMnemonicBackedUp(exists)
+  }, [])
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -98,17 +108,44 @@ export default function SecurityPage() {
     }
   }
 
+  const handleBackupMnemonic = async () => {
+    try {
+      const mnemonic = retrieveMnemonic()
+
+      try {
+        await navigator.clipboard.writeText(mnemonic)
+        toast.success('Recovery phrase copied to clipboard')
+      } catch (clipboardError) {
+        // If clipboard fails, show the phrase in UI
+        setShowMnemonic(true)
+        toast.info('Please copy your recovery phrase manually')
+      }
+
+      setMnemonicBackedUp(true)
+    } catch (error) {
+      toast.error('Failed to retrieve recovery phrase')
+    }
+  }
+
+  const handleDeleteMnemonic = () => {
+    try {
+      deleteMnemonic()
+      setMnemonicBackedUp(false)
+      setShowMnemonic(false)
+      setHasMnemonicPhrase(false)
+      toast.success('Recovery phrase deleted from this device')
+    } catch (error) {
+      toast.error('Failed to delete recovery phrase')
+    }
+  }
+
   return (
     <Card className="m-4">
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
-        <CardDescription>
-          {hasPassword
-            ? 'Your wallet is protected with a password'
-            : 'Set a password to protect your wallet'}
-        </CardDescription>
+        <CardDescription>Manage your wallet security and backup settings</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         {!hasPassword ? (
           <form onSubmit={handleSetPassword} className="space-y-4">
             <div className="space-y-2">
@@ -188,6 +225,71 @@ export default function SecurityPage() {
             </AlertDialog>
           </div>
         )}
+
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-medium mb-4">Wallet Backup</h3>
+          <div className="space-y-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Shield className="h-4 w-4 mr-2" />
+                  {hasMnemonicPhrase ? 'Backup Recovery Phrase' : 'No Recovery Phrase Available'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {hasMnemonicPhrase ? 'Your Recovery Phrase' : 'No Recovery Phrase'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-4">
+                    {hasMnemonicPhrase ? (
+                      <>
+                        <p className="text-yellow-600 dark:text-yellow-500">
+                          ⚠️ Never share your recovery phrase with anyone. Store it safely.
+                        </p>
+
+                        <Button onClick={handleBackupMnemonic} variant="outline" className="w-full">
+                          <Download className="h-4 w-4 mr-2" />
+                          Copy Recovery Phrase
+                        </Button>
+
+                        {showMnemonic && (
+                          <div className="mt-4 p-4 bg-muted rounded-md">
+                            <p className="text-sm font-mono break-all select-all">
+                              {retrieveMnemonic()}
+                            </p>
+                          </div>
+                        )}
+
+                        {mnemonicBackedUp && (
+                          <Button
+                            onClick={handleDeleteMnemonic}
+                            variant="destructive"
+                            className="w-full"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Recovery Phrase
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center space-y-4">
+                        <p>No recovery phrase is currently stored on this device.</p>
+                        <p className="text-sm text-muted-foreground">
+                          If you&apos;ve previously backed up your recovery phrase, keep it safe. If
+                          you need to restore your wallet, you&apos;ll need to use that phrase.
+                        </p>
+                      </div>
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Close</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
