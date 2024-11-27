@@ -27,6 +27,43 @@ export default function WalletManagement() {
 
   return (
     <div className="min-h-screen p-3 md:p-6">
+      {!walletSolana ? (
+        <MotionCard
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="overflow-hidden shadow-lg bg-gray-800 border border-gray-700"
+        >
+          <CardContent className="p-6">
+            <div className="grid gap-8 md:grid-cols-2">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <WalletGenerator
+                  user={currentUser}
+                  wallet={walletSolana}
+                  onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+                />
+              </motion.div>
+            </div>
+          </CardContent>
+        </MotionCard>
+      ) : (
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="pb-4"
+        >
+          <WalletDetails
+            user={currentUser}
+            wallet={walletSolana}
+            onWalletDelete={() => setWalletSolana(null)}
+          />
+        </motion.div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,7 +82,7 @@ export default function WalletManagement() {
                 <Link href="/transactions" className="w-full sm:w-auto">
                   <Button
                     variant="default"
-                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg"
                   >
                     <ScrollText className="mr-2 h-4 w-4" />
                     Transactions
@@ -54,7 +91,7 @@ export default function WalletManagement() {
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <Button
                     variant="secondary"
-                    className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+                    className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded-lg "
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Explorer
@@ -64,43 +101,6 @@ export default function WalletManagement() {
               </div>
             </CardContent>
           </MotionCard>
-        )}
-
-        {!walletSolana ? (
-          <MotionCard
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="overflow-hidden shadow-lg bg-gray-800 border border-gray-700"
-          >
-            <CardContent className="p-6">
-              <div className="grid gap-8 md:grid-cols-2">
-                <motion.div
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                  <WalletGenerator
-                    user={currentUser}
-                    wallet={walletSolana}
-                    onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
-                  />
-                </motion.div>
-              </div>
-            </CardContent>
-          </MotionCard>
-        ) : (
-          <motion.div
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <WalletDetails
-              user={currentUser}
-              wallet={walletSolana}
-              onWalletDelete={() => setWalletSolana(null)}
-            />
-          </motion.div>
         )}
       </motion.div>
     </div>

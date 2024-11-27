@@ -89,11 +89,8 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
 
   return (
     <Card className="mt-4">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold">Wallet Details</CardTitle>
-      </CardHeader>
       <CardContent>
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 pt-4">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
