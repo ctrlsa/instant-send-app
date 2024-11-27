@@ -158,7 +158,12 @@ export const sendTokens = async (
   sendAmount: string,
   recipient: string
 ): Promise<string> => {
-  if (selectedToken.symbol === 'SOL' && selectedToken.balance !== undefined) {
+  if (selectedToken.symbol === 'SOL') {
+    const balance = await connection.getBalance(new PublicKey(wallet.publicKey))
+    selectedToken.balance = balance / LAMPORTS_PER_SOL
+    if (selectedToken.balance === undefined) {
+      throw new Error('Insufficient SOL balance for this transfer')
+    }
     const recipientPubkey = new PublicKey(recipient)
     const lamports = parseFloat(sendAmount) * LAMPORTS_PER_SOL
 
