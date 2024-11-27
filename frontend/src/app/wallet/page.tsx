@@ -82,7 +82,7 @@ export default function WalletManagement() {
                 <Link href="/transactions" className="w-full sm:w-auto">
                   <Button
                     variant="default"
-                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg"
+                    className="w-full sm:w-auto bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg"
                   >
                     <ScrollText className="mr-2 h-4 w-4" />
                     Transactions
@@ -91,7 +91,7 @@ export default function WalletManagement() {
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <Button
                     variant="secondary"
-                    className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded-lg "
+                    className="w-full sm:w-auto bg-gray-700 text-gray-200 font-medium py-2 px-4 rounded-lg "
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Explorer
