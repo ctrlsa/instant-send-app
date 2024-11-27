@@ -56,7 +56,7 @@
     "next": "14.2.4",
     "next-themes": "^0.3.0",
     "normalize.css": "^8.0.1",
-    "posthog-js": "^1.178.0",
+    "posthog-js": "^1.190.2",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.53.0",
