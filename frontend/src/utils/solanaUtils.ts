@@ -4,14 +4,16 @@ import {
   Transaction,
   LAMPORTS_PER_SOL,
   SystemProgram,
-  TransactionInstruction
+  TransactionInstruction,
+  SYSVAR_RENT_PUBKEY
 } from '@solana/web3.js'
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
   getAccount,
   createAssociatedTokenAccountInstruction,
-  TOKEN_PROGRAM_ID
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID
 } from '@solana/spl-token'
 import { Wallet } from '@/utils/wallet'
 import bs58 from 'bs58'
@@ -320,6 +322,21 @@ type EscrowParams = {
   token?: Token
 }
 
+class EscrowError extends Error {
+  constructor(
+    message: string,
+    public logs?: string[]
+  ) {
+    super(message)
+    this.name = 'EscrowError'
+  }
+}
+
+function getInstructionDiscriminator(name: string): Buffer {
+  const preimage = `global:${name}`
+  return Buffer.from(sha256.array(preimage).slice(0, 8))
+}
+
 async function createEscrowInstruction(
   params: EscrowParams,
   escrowAccount: PublicKey,
@@ -330,25 +347,53 @@ async function createEscrowInstruction(
   const secretHash = Array.from(sha256.array(secret))
   const programId = new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
 
-  const keys = [
-    { pubkey: fromPubkey, isSigner: true, isWritable: true },
-    { pubkey: escrowAccount, isSigner: false, isWritable: true }
-  ]
+  const amountInSmallestUnit = isSol
+    ? Math.round(parseFloat(amount) * LAMPORTS_PER_SOL)
+    : Math.round(parseFloat(amount) * 1e6)
 
-  if (isSol) {
-    keys.push({ pubkey: SystemProgram.programId, isSigner: false, isWritable: false })
-  } else if (token) {
-    keys.push({ pubkey: new PublicKey(token.mintAddress), isSigner: false, isWritable: false })
+  // Calculate discriminators using Anchor's method
+  const SPL_DISCRIMINATOR = getInstructionDiscriminator('initialize_transfer_spl')
+  const SOL_DISCRIMINATOR = getInstructionDiscriminator('initialize_transfer_sol')
+
+  if (!isSol && token) {
+    const mintPubkey = new PublicKey(token.mintAddress)
+    const escrowTokenAccount = await getAssociatedTokenAddress(mintPubkey, escrowAccount, true)
+    const senderTokenAccount = await getAssociatedTokenAddress(mintPubkey, fromPubkey)
+
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: fromPubkey, isSigner: true, isWritable: true },
+        { pubkey: escrowAccount, isSigner: false, isWritable: true },
+        { pubkey: escrowTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: senderTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: mintPubkey, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }
+      ],
+      programId,
+      data: Buffer.concat([
+        SPL_DISCRIMINATOR,
+        Buffer.from(new BigInt64Array([BigInt(amountInSmallestUnit)]).buffer),
+        Buffer.from(new BigInt64Array([BigInt(expirationTime)]).buffer),
+        Buffer.from(secretHash)
+      ])
+    })
   }
 
-  const amountInLamports = parseFloat(amount) * (isSol ? LAMPORTS_PER_SOL : 1e6)
-
+  // For SOL transfers
   return new TransactionInstruction({
-    keys,
+    keys: [
+      { pubkey: fromPubkey, isSigner: true, isWritable: true },
+      { pubkey: escrowAccount, isSigner: false, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }
+    ],
     programId,
     data: Buffer.concat([
-      Buffer.from([isSol ? 0 : 1]),
-      Buffer.from(new BigInt64Array([BigInt(amountInLamports)]).buffer),
+      SOL_DISCRIMINATOR,
+      Buffer.from(new BigInt64Array([BigInt(amountInSmallestUnit)]).buffer),
       Buffer.from(new BigInt64Array([BigInt(expirationTime)]).buffer),
       Buffer.from(secretHash)
     ])
@@ -360,78 +405,137 @@ export async function initializeEscrow(params: EscrowParams): Promise<string> {
   const isSol = !token
   const escrowSeed = isSol ? 'escrow_sol' : 'escrow_spl'
   const secretHash = Array.from(sha256.array(secret))
+  console.log('secretHash', sha256(secret))
 
-  const [escrowAccount] = await PublicKey.findProgramAddress(
-    [Buffer.from(escrowSeed), Buffer.from(secretHash)],
-    new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
-  )
+  try {
+    const [escrowAccount] = await PublicKey.findProgramAddress(
+      [Buffer.from(escrowSeed), Buffer.from(secretHash)],
+      new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
+    )
 
-  const transaction = new Transaction()
-  transaction.add(await createEscrowInstruction(params, escrowAccount, isSol))
+    const transaction = new Transaction()
+    transaction.add(await createEscrowInstruction(params, escrowAccount, isSol))
 
-  const { blockhash } = await connection.getLatestBlockhash()
-  transaction.recentBlockhash = blockhash
-  transaction.feePayer = new PublicKey(wallet.publicKey)
+    const { blockhash } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+    transaction.feePayer = new PublicKey(wallet.publicKey)
 
-  const signedTransaction = await signTransaction(transaction, wallet)
-  const signature = await connection.sendRawTransaction(signedTransaction.serialize())
-  await connection.confirmTransaction(signature, 'confirmed')
+    const signedTransaction = await signTransaction(transaction, wallet)
 
-  return signature
+    try {
+      // Simulate the transaction first
+      const simulation = await connection.simulateTransaction(signedTransaction)
+      if (simulation.value.err) {
+        throw new EscrowError('Transaction simulation failed', simulation.value.logs)
+      }
+
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+      await connection.confirmTransaction(signature, 'confirmed')
+      return signature
+    } catch (error) {
+      if (error instanceof Error) {
+        const sendError = error as any
+        if (sendError.logs) {
+          throw new EscrowError(`Failed to initialize escrow: ${error.message}`, sendError.logs)
+        }
+      }
+      throw error
+    }
+  } catch (error) {
+    console.error('Escrow initialization error:', error)
+    if (error instanceof EscrowError) {
+      console.error('Program logs:', error.logs)
+    }
+    throw error
+  }
 }
 
-async function createRedeemOrRefundInstruction(
-  wallet: Wallet,
-  escrowAccount: PublicKey,
-  secret: string,
-  isRedeem: boolean
+type RedeemParams = {
+  connection: Connection
+  wallet: Wallet
+  secret: string
+  isSol: boolean
+  token?: Token
+  recipient?: string // Optional recipient address, defaults to signer
+}
+
+export async function redeemEscrow(params: RedeemParams): Promise<string> {
+  const { connection, wallet, secret, isSol, token } = params
+  const secretHash = Array.from(sha256.array(secret))
+  const escrowSeed = isSol ? 'escrow_sol' : 'escrow_spl'
+
+  try {
+    const [escrowAccount] = await PublicKey.findProgramAddress(
+      [Buffer.from(escrowSeed), Buffer.from(secretHash)],
+      new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
+    )
+
+    const transaction = new Transaction()
+    transaction.add(await createRedeemInstruction(params, escrowAccount))
+
+    const { blockhash } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+    transaction.feePayer = new PublicKey(wallet.publicKey)
+
+    const signedTransaction = await signTransaction(transaction, wallet)
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+    await connection.confirmTransaction(signature, 'confirmed')
+    return signature
+  } catch (error) {
+    console.error('Redeem error:', error)
+    if (error instanceof EscrowError) {
+      console.error('Program logs:', error.logs)
+    }
+    throw error
+  }
+}
+
+async function createRedeemInstruction(
+  params: RedeemParams,
+  escrowAccount: PublicKey
 ): Promise<TransactionInstruction> {
-  const programId = new PublicKey('YOUR_PROGRAM_ID')
-  const pubkey = new PublicKey(wallet.publicKey)
+  const { wallet, secret, isSol, token, recipient } = params
+  const fromPubkey = new PublicKey(wallet.publicKey)
+  const programId = new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
+
+  // Calculate redeem discriminator
+  const REDEEM_DISCRIMINATOR = getInstructionDiscriminator(
+    isSol ? 'redeem_funds_sol' : 'redeem_funds_spl'
+  )
+
+  if (!isSol && token) {
+    const mintPubkey = new PublicKey(token.mintAddress)
+    const escrowTokenAccount = await getAssociatedTokenAddress(mintPubkey, escrowAccount, true)
+    const recipientTokenAccount = await getAssociatedTokenAddress(mintPubkey, fromPubkey)
+
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: fromPubkey, isSigner: true, isWritable: true }, // signer
+        { pubkey: fromPubkey, isSigner: false, isWritable: true }, // recipient
+        { pubkey: escrowAccount, isSigner: false, isWritable: true }, // escrow_account
+        { pubkey: escrowTokenAccount, isSigner: false, isWritable: true }, // escrow_token_account
+        { pubkey: recipientTokenAccount, isSigner: false, isWritable: true }, // recipient_token_account
+        { pubkey: mintPubkey, isSigner: false, isWritable: false }, // token_mint
+        { pubkey: fromPubkey, isSigner: false, isWritable: true }, // sender
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }
+      ],
+      programId,
+      data: Buffer.concat([REDEEM_DISCRIMINATOR, Buffer.from(secret, 'utf8')])
+    })
+  }
 
   return new TransactionInstruction({
     keys: [
-      { pubkey, isSigner: true, isWritable: true },
-      { pubkey: escrowAccount, isSigner: false, isWritable: true }
+      { pubkey: fromPubkey, isSigner: true, isWritable: true }, // signer
+      { pubkey: fromPubkey, isSigner: false, isWritable: true }, // recipient
+      { pubkey: escrowAccount, isSigner: false, isWritable: true }, // escrow_account
+      { pubkey: fromPubkey, isSigner: false, isWritable: true }, // sender
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }
     ],
     programId,
-    data: Buffer.concat([Buffer.from([isRedeem ? 2 : 3]), Buffer.from(secret)])
+    data: Buffer.concat([REDEEM_DISCRIMINATOR, Buffer.from(secret, 'utf8')])
   })
 }
-
-async function redeemOrRefundEscrow(
-  connection: Connection,
-  wallet: Wallet,
-  secret: string,
-  isSol: boolean,
-  isRedeem: boolean
-): Promise<string> {
-  const secretHash = Array.from(sha256.array(secret))
-  const [escrowAccount] = await PublicKey.findProgramAddress(
-    [Buffer.from(isSol ? 'escrow_sol' : 'escrow_spl'), Buffer.from(secretHash)],
-    new PublicKey('YOUR_PROGRAM_ID')
-  )
-
-  const transaction = new Transaction()
-  transaction.add(await createRedeemOrRefundInstruction(wallet, escrowAccount, secret, isRedeem))
-
-  const signedTransaction = await signTransaction(transaction, wallet)
-  const signature = await connection.sendRawTransaction(signedTransaction.serialize())
-  await connection.confirmTransaction(signature, 'confirmed')
-
-  return signature
-}
-
-export const redeemFromEscrow = (
-  connection: Connection,
-  wallet: Wallet,
-  secret: string,
-  isSol: boolean
-) => redeemOrRefundEscrow(connection, wallet, secret, isSol, true)
-
-export const refundFromEscrow = (
-  connection: Connection,
-  wallet: Wallet,
-  secret: string,
-  isSol: boolean
-) => redeemOrRefundEscrow(connection, wallet, secret, isSol, false)

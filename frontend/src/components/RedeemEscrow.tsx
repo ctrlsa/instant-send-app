@@ -1,26 +1,22 @@
 import React, { useState } from 'react'
 import { useWallet } from '@/contexts/WalletContext'
 import { Connection } from '@solana/web3.js'
-import { initializeEscrow } from '@/utils/solanaUtils'
-import { tokenList } from '@/utils/tokens'
+import { redeemEscrow } from '@/utils/solanaUtils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { RedeemEscrow } from './RedeemEscrow'
+import { tokenList } from '@/utils/tokens'
 
-export const EscrowOperations = () => {
+export const RedeemEscrow = () => {
   const { walletSolana } = useWallet()
-  const [amount, setAmount] = useState('')
   const [secret, setSecret] = useState('')
-  const [expirationTime, setExpirationTime] = useState('')
   const [loading, setLoading] = useState(false)
-
   const connection = new Connection('https://api.devnet.solana.com')
 
-  const handleInitialize = async (isSol: boolean) => {
+  const handleRedeem = async (isSol: boolean) => {
     if (!walletSolana) {
       toast.error('Wallet not connected')
       return
@@ -28,28 +24,20 @@ export const EscrowOperations = () => {
 
     setLoading(true)
     try {
-      const expTime = Math.floor(Date.now() / 1000) + parseInt(expirationTime) * 60
-
-      const params = {
+      const signature = await redeemEscrow({
         connection,
         wallet: walletSolana,
-        amount,
-        expirationTime: expTime,
         secret,
-        ...(isSol ? {} : { token: tokenList[1] })
-      }
-
-      const signature = await initializeEscrow(params)
+        isSol,
+        token: isSol ? tokenList[0] : tokenList[1]
+      })
 
       toast.success(
-        `Transaction successful! Signature: ${signature.slice(0, 8)}...${signature.slice(-8)}`
+        `Redeem successful! Signature: ${signature.slice(0, 8)}...${signature.slice(-8)}`
       )
     } catch (error) {
-      console.error('Failed to initialize escrow:', error)
-
-      toast.error(
-        `Failed to initialize escrow: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      console.error('Failed to redeem:', error)
+      toast.error(`Failed to redeem: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -58,46 +46,24 @@ export const EscrowOperations = () => {
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Create Escrow</CardTitle>
+        <CardTitle>Redeem Escrow</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount</Label>
-          <Input
-            id="amount"
-            type="text"
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="secret">Secret</Label>
+          <Label htmlFor="secret">Secret Phrase</Label>
           <Input
             id="secret"
             type="text"
-            placeholder="Enter secret phrase"
+            placeholder="Enter the secret phrase"
             value={secret}
             onChange={(e) => setSecret(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="expiration">Expiration (minutes)</Label>
-          <Input
-            id="expiration"
-            type="text"
-            placeholder="Enter expiration time"
-            value={expirationTime}
-            onChange={(e) => setExpirationTime(e.target.value)}
           />
         </div>
 
         <div className="flex gap-4 pt-4">
           <Button
             variant="default"
-            onClick={() => handleInitialize(true)}
+            onClick={() => handleRedeem(true)}
             disabled={loading}
             className="flex-1"
           >
@@ -107,12 +73,12 @@ export const EscrowOperations = () => {
                 Processing
               </>
             ) : (
-              'Initialize SOL Escrow'
+              'Redeem SOL'
             )}
           </Button>
           <Button
             variant="secondary"
-            onClick={() => handleInitialize(false)}
+            onClick={() => handleRedeem(false)}
             disabled={loading}
             className="flex-1"
           >
@@ -122,12 +88,11 @@ export const EscrowOperations = () => {
                 Processing
               </>
             ) : (
-              'Initialize Token Escrow'
+              'Redeem Token'
             )}
           </Button>
         </div>
       </CardContent>
-      <RedeemEscrow />
     </Card>
   )
 }
