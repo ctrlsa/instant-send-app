@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useInitData } from '@telegram-apps/sdk-react'
+import { useInitData, useViewport, useViewportRaw } from '@telegram-apps/sdk-react'
 import { User, Wallet as WalletIcon, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,8 @@ import { Contact } from '@/types'
 
 export default function Home() {
   const initData = useInitData()
+  const viewport = useViewport()
+
   const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
@@ -27,7 +29,12 @@ export default function Home() {
     const { id, username, firstName, lastName } = initData.user
     return { id: id.toString(), username, name: `${firstName} ${lastName}` }
   }, [initData])
-
+  useEffect(() => {
+    const vp = viewport
+    if (!vp?.isExpanded) {
+      vp?.expand()
+    }
+  }, [viewport])
   const getContacts = useCallback(
     async (isRefreshAction = false) => {
       try {
