@@ -32,7 +32,7 @@ export default function WalletManagement() {
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="overflow-hidden shadow-lg bg-gray-800 border border-gray-700"
+          className="overflow-hidden shadow-lg border"
         >
           <CardContent className="p-6">
             <div className="grid gap-8 md:grid-cols-2">
