@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@project-serum/anchor": "^0.26.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.1.1",
@@ -33,7 +34,7 @@
     "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.0",
     "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.95.4",
+    "@solana/web3.js": "^1.95.5",
     "@tanstack/react-table": "^8.20.5",
     "@telegram-apps/react-router-integration": "^1.0.0",
     "@telegram-apps/sdk-react": "^1.0.0",

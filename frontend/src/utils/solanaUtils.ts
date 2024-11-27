@@ -4,7 +4,7 @@ import {
   Transaction,
   LAMPORTS_PER_SOL,
   SystemProgram,
-  Keypair
+  TransactionInstruction
 } from '@solana/web3.js'
 import {
   getAssociatedTokenAddress,
@@ -18,6 +18,7 @@ import bs58 from 'bs58'
 import nacl from 'tweetnacl'
 import { mnemonicToSeedSync } from 'bip39'
 import { derivePath } from 'ed25519-hd-key'
+import { sha256 } from 'js-sha256'
 
 export type Token = {
   symbol: string
@@ -310,4 +311,127 @@ export const hasMnemonic = (): boolean => {
   return walletParsed.mnemonic !== ''
 }
 
-// Function to derive keypair from mnemonic (useful for verification)
+type EscrowParams = {
+  connection: Connection
+  wallet: Wallet
+  amount: string
+  expirationTime: number
+  secret: string
+  token?: Token
+}
+
+async function createEscrowInstruction(
+  params: EscrowParams,
+  escrowAccount: PublicKey,
+  isSol: boolean
+): Promise<TransactionInstruction> {
+  const { wallet, amount, expirationTime, secret, token } = params
+  const fromPubkey = new PublicKey(wallet.publicKey)
+  const secretHash = Array.from(sha256.array(secret))
+  const programId = new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
+
+  const keys = [
+    { pubkey: fromPubkey, isSigner: true, isWritable: true },
+    { pubkey: escrowAccount, isSigner: false, isWritable: true }
+  ]
+
+  if (isSol) {
+    keys.push({ pubkey: SystemProgram.programId, isSigner: false, isWritable: false })
+  } else if (token) {
+    keys.push({ pubkey: new PublicKey(token.mintAddress), isSigner: false, isWritable: false })
+  }
+
+  const amountInLamports = parseFloat(amount) * (isSol ? LAMPORTS_PER_SOL : 1e6)
+
+  return new TransactionInstruction({
+    keys,
+    programId,
+    data: Buffer.concat([
+      Buffer.from([isSol ? 0 : 1]),
+      Buffer.from(new BigInt64Array([BigInt(amountInLamports)]).buffer),
+      Buffer.from(new BigInt64Array([BigInt(expirationTime)]).buffer),
+      Buffer.from(secretHash)
+    ])
+  })
+}
+
+export async function initializeEscrow(params: EscrowParams): Promise<string> {
+  const { connection, wallet, secret, token } = params
+  const isSol = !token
+  const escrowSeed = isSol ? 'escrow_sol' : 'escrow_spl'
+  const secretHash = Array.from(sha256.array(secret))
+
+  const [escrowAccount] = await PublicKey.findProgramAddress(
+    [Buffer.from(escrowSeed), Buffer.from(secretHash)],
+    new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
+  )
+
+  const transaction = new Transaction()
+  transaction.add(await createEscrowInstruction(params, escrowAccount, isSol))
+
+  const { blockhash } = await connection.getLatestBlockhash()
+  transaction.recentBlockhash = blockhash
+  transaction.feePayer = new PublicKey(wallet.publicKey)
+
+  const signedTransaction = await signTransaction(transaction, wallet)
+  const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+  await connection.confirmTransaction(signature, 'confirmed')
+
+  return signature
+}
+
+async function createRedeemOrRefundInstruction(
+  wallet: Wallet,
+  escrowAccount: PublicKey,
+  secret: string,
+  isRedeem: boolean
+): Promise<TransactionInstruction> {
+  const programId = new PublicKey('YOUR_PROGRAM_ID')
+  const pubkey = new PublicKey(wallet.publicKey)
+
+  return new TransactionInstruction({
+    keys: [
+      { pubkey, isSigner: true, isWritable: true },
+      { pubkey: escrowAccount, isSigner: false, isWritable: true }
+    ],
+    programId,
+    data: Buffer.concat([Buffer.from([isRedeem ? 2 : 3]), Buffer.from(secret)])
+  })
+}
+
+async function redeemOrRefundEscrow(
+  connection: Connection,
+  wallet: Wallet,
+  secret: string,
+  isSol: boolean,
+  isRedeem: boolean
+): Promise<string> {
+  const secretHash = Array.from(sha256.array(secret))
+  const [escrowAccount] = await PublicKey.findProgramAddress(
+    [Buffer.from(isSol ? 'escrow_sol' : 'escrow_spl'), Buffer.from(secretHash)],
+    new PublicKey('YOUR_PROGRAM_ID')
+  )
+
+  const transaction = new Transaction()
+  transaction.add(await createRedeemOrRefundInstruction(wallet, escrowAccount, secret, isRedeem))
+
+  const signedTransaction = await signTransaction(transaction, wallet)
+  const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+  await connection.confirmTransaction(signature, 'confirmed')
+
+  return signature
+}
+
+export const redeemFromEscrow = (
+  connection: Connection,
+  wallet: Wallet,
+  secret: string,
+  isSol: boolean
+) => redeemOrRefundEscrow(connection, wallet, secret, isSol, true)
+
+export const refundFromEscrow = (
+  connection: Connection,
+  wallet: Wallet,
+  secret: string,
+  isSol: boolean
+) => redeemOrRefundEscrow(connection, wallet, secret, isSol, false)
