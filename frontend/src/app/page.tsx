@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useInitData, useViewport, useViewportRaw } from '@telegram-apps/sdk-react'
+import { useInitData, useViewport } from '@telegram-apps/sdk-react'
 import { User, Wallet as WalletIcon, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
