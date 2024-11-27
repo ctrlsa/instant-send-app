@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useWallet } from '@/contexts/WalletContext'
-import { Connection } from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { initializeEscrow } from '@/utils/solanaUtils'
 import { tokenList } from '@/utils/tokens'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,20 +30,19 @@ export const EscrowOperations = () => {
     try {
       const expTime = Math.floor(Date.now() / 1000) + parseInt(expirationTime) * 60
 
-      const params = {
+      const signature = await initializeEscrow(
         connection,
-        wallet: walletSolana,
+        walletSolana,
+        isSol ? new PublicKey(tokenList[0].mintAddress) : new PublicKey(tokenList[1].mintAddress),
         amount,
-        expirationTime: expTime,
+        expTime,
         secret,
-        ...(isSol ? {} : { token: tokenList[1] })
-      }
-
-      const signature = await initializeEscrow(params)
-
-      toast.success(
-        `Transaction successful! Signature: ${signature.slice(0, 8)}...${signature.slice(-8)}`
+        isSol
       )
+
+      if (signature) {
+        toast.success(`Transaction successful! Signature: ${signature.signature}`)
+      }
     } catch (error) {
       console.error('Failed to initialize escrow:', error)
 
