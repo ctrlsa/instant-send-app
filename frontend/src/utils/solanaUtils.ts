@@ -399,7 +399,11 @@ export async function initializeEscrow(
       .rpc()
   } else {
     tx = await program.methods
-      .initializeTransferSpl(new BN(amount), new BN(expirationTime), secretHash)
+      .initializeTransferSpl(
+        new BN(parseFloat(amount) * 10 ** 6),
+        new BN(expirationTime),
+        secretHash
+      )
       .accounts({
         sender: new PublicKey(senderWallet.publicKey),
         escrowAccount,
