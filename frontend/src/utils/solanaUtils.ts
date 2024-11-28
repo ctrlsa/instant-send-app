@@ -387,36 +387,31 @@ export async function initializeEscrow(
   console.log('Escrow PDA:', escrowAccount.toBase58())
   const signer = Keypair.fromSecretKey(bs58.decode(senderWallet.privateKey))
 
-  const tx = isSol
-    ? await program.methods
-        .initializeTransferSol(
-          new BN(amount * LAMPORTS_PER_SOL),
-          new BN(expirationTime),
-          secretHash
+  let tx: string
+  if (isSol) {
+    tx = await program.methods
+      .initializeTransferSol(new BN(amount * LAMPORTS_PER_SOL), new BN(expirationTime), secretHash)
+      .accounts({
+        sender: new PublicKey(senderWallet.publicKey),
+        escrowAccount
+      })
+      .signers([signer])
+      .rpc()
+  } else {
+    tx = await program.methods
+      .initializeTransferSpl(new BN(amount), new BN(expirationTime), secretHash)
+      .accounts({
+        sender: new PublicKey(senderWallet.publicKey),
+        escrowAccount,
+        tokenMint: tokenMint!,
+        senderTokenAccount: getAssociatedTokenAddressSync(
+          tokenMint!,
+          new PublicKey(senderWallet.publicKey)
         )
-        .accounts({
-          sender: new PublicKey(senderWallet.publicKey),
-          escrowAccount
-        })
-        .signers([signer])
-        .rpc()
-    : await program.methods
-        .initializeTransferSpl(
-          new BN(amount * LAMPORTS_PER_SOL),
-          new BN(expirationTime),
-          secretHash
-        )
-        .accounts({
-          sender: new PublicKey(senderWallet.publicKey),
-          escrowAccount,
-          tokenMint: tokenMint!,
-          senderTokenAccount: getAssociatedTokenAddressSync(
-            tokenMint!,
-            new PublicKey(senderWallet.publicKey)
-          )
-        })
-        .signers([signer])
-        .rpc()
+      })
+      .signers([signer])
+      .rpc()
+  }
 
   console.log('Transaction:', tx)
   return tx
