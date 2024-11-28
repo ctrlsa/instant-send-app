@@ -342,7 +342,6 @@ export async function initializeEscrow(
   isSol: boolean
 ): Promise<string> {
   const keypair = Keypair.fromSecretKey(bs58.decode(senderWallet.privateKey))
-
   const wallet = {
     publicKey: keypair.publicKey,
     signTransaction: async <T extends Transaction | anchor.web3.VersionedTransaction>(

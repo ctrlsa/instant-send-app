@@ -64,6 +64,12 @@ export default function Home() {
       getContacts()
     }
   }, [currentUser, getContacts])
+  useEffect(() => {
+    if (!initData) return
+    // const urlParams = new URLSearchParams(initData)
+    // const startParam = urlParams.get('start')
+    console.log(initData.startParam)
+  }, [])
 
   return (
     <motion.div
