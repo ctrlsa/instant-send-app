@@ -175,7 +175,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
 
   const getRedeemLink = () => {
     if (!escrowSecret || !escrowTx) return ''
-    return `https://t.me/InstantSendTestBot/InstantSendLocalTest/redeem?tx=${escrowTx}&secret=${escrowSecret}&sender=${walletSolana?.publicKey}`
+    return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}`
   }
 
   return (

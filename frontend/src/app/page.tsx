@@ -69,7 +69,10 @@ export default function Home() {
     if (!initData) return
     // const urlParams = new URLSearchParams(initData)
     // const startParam = urlParams.get('start')
-    console.log(initData.startParam)
+    if (initData?.startParam) {
+      const [secret, sender] = initData?.startParam?.split('__')
+      console.log(secret, sender)
+    }
   }, [])
 
   return (

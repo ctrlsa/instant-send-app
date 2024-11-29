@@ -19,11 +19,12 @@ export const RedeemEscrow = () => {
   const parseInputUrl = (url: string) => {
     try {
       const urlObj = new URL(url)
-      const params = new URLSearchParams(urlObj.search)
+      const param = urlObj.searchParams.get('startapp')
+      const [secret, sender] = param?.split('__') || []
+      console.log(secret, sender)
       return {
-        tx: params.get('tx') || '',
-        secret: params.get('secret') || '',
-        sender: params.get('sender') || ''
+        secret,
+        sender
       }
     } catch (error) {
       console.error('Invalid URL:', error)
