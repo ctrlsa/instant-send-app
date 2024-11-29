@@ -56,7 +56,7 @@ export const EscrowOperations = () => {
 
   return (
     <Card className="max-w-md mx-auto">
-      <CardHeader>
+      {/* <CardHeader>
         <CardTitle>Create Escrow</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -125,7 +125,7 @@ export const EscrowOperations = () => {
             )}
           </Button>
         </div>
-      </CardContent>
+      </CardContent> */}
       <RedeemEscrow />
     </Card>
   )
