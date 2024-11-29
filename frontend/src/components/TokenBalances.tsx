@@ -177,7 +177,11 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
 
   const getRedeemLink = () => {
     if (!escrowSecret || !escrowTx || !escrowToken) return ''
-    return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+    if (process.env.NODE_ENV === 'development') {
+      return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+    } else {
+      return `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+    }
   }
 
   return (

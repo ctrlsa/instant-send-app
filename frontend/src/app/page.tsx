@@ -17,7 +17,7 @@ import { Contact } from '@/types'
 import { RedeemEscrow } from '@/components/RedeemEscrow'
 import { tokenList } from '@/utils/tokens'
 import { redeemEscrow } from '@/utils/solanaUtils'
-import { Connection } from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 
 export default function Home() {
   const initData = useInitData()
@@ -76,6 +76,14 @@ export default function Home() {
     if (!walletSolana) {
       toast.success('Create a wallet to redeem escrow')
       return
+    }
+    if (walletSolana) {
+      const balance = await connection.getBalance(new PublicKey(walletSolana.publicKey))
+      // check if balance is greater than 0
+      if (balance === 0) {
+        toast.error('Add some SOL to your wallet to redeem escrow')
+        return
+      }
     }
     try {
       setIsRedeeming(true)
