@@ -14,6 +14,7 @@ import TokenBalances from '@/components/TokenBalances'
 import { useWallet } from '@/contexts/WalletContext'
 import { contactsApi } from '@/services/api'
 import { Contact } from '@/types'
+import { RedeemEscrow } from '@/components/RedeemEscrow'
 
 export default function Home() {
   const initData = useInitData()
@@ -128,7 +129,8 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
-
+        {/* Redeem Escrow */}
+        {walletSolana && <RedeemEscrow />}
         {/* Token Balances */}
         {walletSolana && (
           <motion.div

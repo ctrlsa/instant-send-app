@@ -12,13 +12,34 @@ import { tokenList } from '@/utils/tokens'
 
 export const RedeemEscrow = () => {
   const { walletSolana } = useWallet()
-  const [secret, setSecret] = useState('')
+  const [inputUrl, setInputUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const connection = new Connection('https://api.devnet.solana.com')
+
+  const parseInputUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url)
+      const params = new URLSearchParams(urlObj.search)
+      return {
+        tx: params.get('tx') || '',
+        secret: params.get('secret') || '',
+        sender: params.get('sender') || ''
+      }
+    } catch (error) {
+      console.error('Invalid URL:', error)
+      return null
+    }
+  }
 
   const handleRedeem = async (isSol: boolean) => {
     if (!walletSolana) {
       toast.error('Wallet not connected')
+      return
+    }
+
+    const params = parseInputUrl(inputUrl)
+    if (!params) {
+      toast.error('Invalid redemption link')
       return
     }
 
@@ -28,8 +49,8 @@ export const RedeemEscrow = () => {
         connection,
         walletSolana,
         isSol ? tokenList[0].mintAddress : tokenList[1].mintAddress,
-        walletSolana.publicKey,
-        secret,
+        params.sender,
+        params.secret,
         isSol
       )
 
@@ -49,13 +70,13 @@ export const RedeemEscrow = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="secret">Secret Phrase</Label>
+          <Label htmlFor="inputUrl">Redemption Link</Label>
           <Input
-            id="secret"
+            id="inputUrl"
             type="text"
-            placeholder="Enter the secret phrase"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
+            placeholder="Enter the redemption link"
+            value={inputUrl}
+            onChange={(e) => setInputUrl(e.target.value)}
           />
         </div>
 
@@ -87,7 +108,7 @@ export const RedeemEscrow = () => {
                 Processing
               </>
             ) : (
-              'Redeem Token'
+              'Redeem USDC'
             )}
           </Button>
         </div>
