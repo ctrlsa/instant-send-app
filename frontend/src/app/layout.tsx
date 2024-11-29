@@ -13,6 +13,13 @@ import { Toaster } from '@/components/ui/sonner'
 import { WalletProvider } from '@/contexts/WalletContext'
 import { CSPostHogProvider } from '@/contexts/PostHogProvider'
 import BottomNav from '@/components/BottomNav'
+import {
+  AlertCircleIcon,
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  InfoIcon,
+  Loader2Icon
+} from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Instant Send App by CTRL',
@@ -31,7 +38,16 @@ export default function RootLayout({ children }: PropsWithChildren) {
             disableTransitionOnChange
           >
             <WalletProvider>
-              <Toaster />
+              <Toaster
+                position="top-center"
+                icons={{
+                  success: <CheckCircleIcon className="text-green-500" />,
+                  info: <InfoIcon className="text-blue-500" />,
+                  warning: <AlertTriangleIcon className="text-yellow-500" />,
+                  error: <AlertCircleIcon className="text-red-500" />,
+                  loading: <Loader2Icon className="text-blue-500" />
+                }}
+              />{' '}
               <Root>
                 <Navbar />
                 <Auth>
