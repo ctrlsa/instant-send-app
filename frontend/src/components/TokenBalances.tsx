@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, RefreshCcw, Send, X } from 'lucide-react'
+import { Loader2, RefreshCcw, Send, X, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { initUtils } from '@telegram-apps/sdk'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -18,8 +19,9 @@ import {
 import { toast } from 'sonner'
 import { useWallet } from '@/contexts/WalletContext'
 import { tokenList } from '@/utils/tokens'
-import { fetchTokenBalances, sendTokens, Token } from '@/utils/solanaUtils'
+import { fetchTokenBalances, sendTokens, Token, initializeEscrow } from '@/utils/solanaUtils'
 import { cn } from '@/lib/utils'
+import { BN } from '@coral-xyz/anchor'
 
 type Contact = {
   id: string
@@ -45,9 +47,14 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const [selectedToken, setSelectedToken] = useState<TokenWithPrice | null>(
     defaultToken ? (tokenList.find((token) => token.symbol === defaultToken) ?? null) : null
   )
+  const utils = initUtils()
 
   const [sendAmount, setSendAmount] = useState('')
   const [recipient, setRecipient] = useState('')
+  const [escrowSecret, setEscrowSecret] = useState<string | null>(null)
+  const [escrowTx, setEscrowTx] = useState<string | null>(null)
+  const [transferMode, setTransferMode] = useState<'direct' | 'escrow' | null>(null)
+  const [escrowToken, setEscrowToken] = useState<TokenWithPrice | null>(null)
 
   const updateTokenBalances = useCallback(
     async (isRefreshAction = false) => {
@@ -98,28 +105,59 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   }
 
   const handleSend = async () => {
-    if (!selectedToken || !sendAmount || !recipient || !connection || !walletSolana) {
+    if (
+      !selectedToken ||
+      !sendAmount ||
+      !recipient ||
+      !connection ||
+      !walletSolana ||
+      !transferMode
+    ) {
       toast.error('Please fill in all fields and ensure wallet is connected')
       return
     }
 
     setLoading(true)
     try {
-      const recipientAddress = contacts.find((contact) => contact.id === recipient)?.solanaAddress
-      if (recipientAddress != null) {
-        await sendTokens(connection, walletSolana, selectedToken, sendAmount, recipientAddress)
-        toast.success(
-          `Sent ${sendAmount} ${selectedToken.symbol} to ${
-            contacts.find((contact) => contact.id === recipient)?.name || 'Recipient'
-          }`
+      const recipientContact = contacts.find((contact) => contact.id === recipient)
+
+      if (transferMode === 'direct') {
+        if (!recipientContact?.solanaAddress) {
+          toast.error('Cannot do direct transfer: recipient has no Solana address')
+          return
+        }
+        await sendTokens(
+          connection,
+          walletSolana,
+          selectedToken,
+          sendAmount,
+          recipientContact.solanaAddress
         )
+        toast.success(`Sent ${sendAmount} ${selectedToken.symbol} to ${recipientContact.name}`)
         setSelectedToken(null)
         setSendAmount('')
         setRecipient('')
+        setTransferMode(null)
         await updateTokenBalances()
       } else {
-        toast.error('Recipient not found, Setting up Escrow Account')
-        //Implement Escrow Account Logic
+        // Escrow transfer
+        const secret = Math.random().toString(36).substring(2, 15)
+        setEscrowSecret(secret)
+        setEscrowToken(selectedToken)
+
+        const expirationTime = Math.floor(Date.now() / 1000) + 24 * 60 * 60
+        const tx = await initializeEscrow(
+          connection,
+          walletSolana,
+          selectedToken.symbol === 'SOL' ? null : new PublicKey(selectedToken.mintAddress),
+          parseFloat(sendAmount),
+          new BN(expirationTime),
+          secret,
+          selectedToken.symbol === 'SOL'
+        )
+
+        setEscrowTx(tx)
+        toast.success('Escrow account created successfully')
       }
     } catch (error) {
       console.error('Error:', error)
@@ -137,11 +175,16 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
     }
   }
 
+  const getRedeemLink = () => {
+    if (!escrowSecret || !escrowTx || !escrowToken) return ''
+    return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+  }
+
   return (
-    <Card>
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex flex-row justify-between items-center">
-          <CardTitle>Token Balances</CardTitle>
+          <CardTitle className="font-bold">Token Balances</CardTitle>
           <Button
             variant="ghost"
             size="icon"
@@ -160,7 +203,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
         ) : (
           <div className="space-y-4">
             {tokens.length > 0 ? (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {tokens.map((token) => (
                   <motion.div
                     key={token.symbol}
@@ -239,19 +282,74 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Transfer Method Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="transferMode">Transfer Method</Label>
+                      <Select
+                        onValueChange={(value) => setTransferMode(value as 'direct' | 'escrow')}
+                        value={transferMode || undefined}
+                      >
+                        <SelectTrigger id="transferMode">
+                          <SelectValue placeholder="Select transfer method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contacts.find((contact) => contact.id === recipient)?.solanaAddress && (
+                            <SelectItem value="direct">
+                              <div className="flex items-center">
+                                <Send className="h-4 w-4 mr-2" />
+                                <span>Direct Transfer</span>
+                              </div>
+                            </SelectItem>
+                          )}
+                          <SelectItem value="escrow">
+                            <div className="flex items-center">
+                              <Lock className="h-4 w-4 mr-2" />
+                              <span>Redeem Link</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <Button
-                      className="w-full"
+                      className="w-full py-4 mt-4"
                       onClick={handleSend}
-                      disabled={loading || isRefreshing}
+                      disabled={loading || isRefreshing || !transferMode}
                     >
                       {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      ) : transferMode === 'direct' ? (
+                        <Send className="h-5 w-5 mr-2" />
                       ) : (
-                        <Send className="h-4 w-4 mr-2" />
+                        <Lock className="h-5 w-5 mr-2" />
                       )}
-                      Send {selectedToken.symbol}
+                      {transferMode === 'direct' ? 'Send Directly' : 'Create Redeem Link'}
                     </Button>
                   </div>
+
+                  {escrowSecret && escrowTx && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-4 p-4 border rounded-lg"
+                    >
+                      <h4 className="font-semibold mb-2">Share this link with the recipient</h4>
+                      <div className="flex gap-2">
+                        <Input readOnly value={getRedeemLink()} />
+                        <Button
+                          onClick={() => {
+                            utils.shareURL(getRedeemLink())
+                          }}
+                        >
+                          Share
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        This link will expire in 24 hours
+                      </p>
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

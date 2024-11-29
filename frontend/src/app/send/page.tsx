@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { contactsApi } from '@/services/api'
 import { Contact } from '@/types'
+import { EscrowOperations } from '@/components/EscrowOperations'
 
 const SendPage = () => {
   const initData = useInitData()
@@ -59,6 +60,7 @@ const SendPage = () => {
           </CardContent>
         </Card>
       )}
+      <EscrowOperations />
     </>
   )
 }

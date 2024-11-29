@@ -11,13 +11,28 @@ import {
   createTransferInstruction,
   getAccount,
   createAssociatedTokenAccountInstruction,
-  TOKEN_PROGRAM_ID
+  TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddressSync
 } from '@solana/spl-token'
-import { Wallet } from '@/utils/wallet'
+import { Wallet as WalletType } from '@/utils/wallet'
+
 import bs58 from 'bs58'
 import nacl from 'tweetnacl'
-import { mnemonicToSeedSync } from 'bip39'
-import { derivePath } from 'ed25519-hd-key'
+import * as anchor from '@coral-xyz/anchor'
+import { AnchorProvider, BN, Program } from '@coral-xyz/anchor'
+import { sha256 } from 'js-sha256'
+
+import { InstantSendProgram } from '../utils/program/types'
+import IDL from '@/utils/program/idl.json'
+
+const ESCROW_SEED_SOL = Buffer.from('escrow_sol')
+const ESCROW_SEED_SPL = Buffer.from('escrow_spl')
+const PROGRAM_ID = new PublicKey('BCLTR5fuCWrMUWc75yKnG35mtrvXt6t2eLuPwCXA93oY')
+
+function hashSecret(secret: string): number[] {
+  const hash = sha256.array(secret)
+  return Array.from(hash.slice(0, 32)).map((num) => Number(num))
+}
 
 export type Token = {
   symbol: string
@@ -153,7 +168,7 @@ export const fetchTokenBalances = async (
 
 export const sendTokens = async (
   connection: Connection,
-  wallet: Wallet,
+  wallet: WalletType,
   selectedToken: Token,
   sendAmount: string,
   recipient: string
@@ -255,7 +270,10 @@ export const sendTokens = async (
   }
 }
 
-const signTransaction = async (transaction: Transaction, wallet: Wallet): Promise<Transaction> => {
+const signTransaction = async (
+  transaction: Transaction,
+  wallet: WalletType
+): Promise<Transaction> => {
   const message = transaction.serializeMessage()
   const secretKey = bs58.decode(wallet.privateKey)
   const signature = nacl.sign.detached(message, secretKey)
@@ -278,7 +296,7 @@ const sendTransaction = async (
 
 export const withdrawToExternalWallet = async (
   connection: Connection,
-  wallet: Wallet,
+  wallet: WalletType,
   selectedToken: Token,
   sendAmount: string,
   recipient: string
@@ -314,5 +332,172 @@ export const hasMnemonic = (): boolean => {
   const walletParsed = JSON.parse(wallet)
   return walletParsed.mnemonic !== ''
 }
+export async function initializeEscrow(
+  connection: Connection,
+  senderWallet: WalletType,
+  tokenMint: PublicKey | null,
+  amount: anchor.BN,
+  expirationTime: anchor.BN,
+  secret: string,
+  isSol: boolean
+): Promise<string> {
+  const keypair = Keypair.fromSecretKey(bs58.decode(senderWallet.privateKey))
+  const wallet = {
+    publicKey: keypair.publicKey,
+    signTransaction: async <T extends Transaction | anchor.web3.VersionedTransaction>(
+      tx: T
+    ): Promise<T> => {
+      if (tx instanceof Transaction) {
+        tx.partialSign(keypair)
+      } else {
+        // Handle VersionedTransaction if needed
+        tx.sign([keypair])
+      }
+      return tx
+    },
+    signAllTransactions: async <T extends Transaction | anchor.web3.VersionedTransaction>(
+      txs: T[]
+    ): Promise<T[]> => {
+      return txs.map((tx) => {
+        if (tx instanceof Transaction) {
+          tx.partialSign(keypair)
+        } else {
+          // Handle VersionedTransaction if needed
+          tx.sign([keypair])
+        }
+        return tx
+      })
+    }
+  }
 
-// Function to derive keypair from mnemonic (useful for verification)
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: 'processed'
+  })
+
+  const program = new Program<InstantSendProgram>(IDL as InstantSendProgram, provider)
+  console.log('Program ID:', program.programId.toBase58())
+  const secretHash = hashSecret(secret)
+
+  // Derive escrow PDA
+  const [escrowAccount] = await PublicKey.findProgramAddress(
+    [Buffer.from(isSol ? ESCROW_SEED_SOL : ESCROW_SEED_SPL), Buffer.from(secretHash)],
+    PROGRAM_ID
+  )
+
+  console.log('Escrow PDA:', escrowAccount.toBase58())
+  const signer = Keypair.fromSecretKey(bs58.decode(senderWallet.privateKey))
+
+  let tx: string
+  if (isSol) {
+    tx = await program.methods
+      .initializeTransferSol(new BN(amount * LAMPORTS_PER_SOL), new BN(expirationTime), secretHash)
+      .accounts({
+        sender: new PublicKey(senderWallet.publicKey),
+        escrowAccount
+      })
+      .signers([signer])
+      .rpc()
+  } else {
+    tx = await program.methods
+      .initializeTransferSpl(
+        new BN(parseFloat(amount) * 10 ** 6),
+        new BN(expirationTime),
+        secretHash
+      )
+      .accounts({
+        sender: new PublicKey(senderWallet.publicKey),
+        escrowAccount,
+        tokenMint: tokenMint!,
+        senderTokenAccount: getAssociatedTokenAddressSync(
+          tokenMint!,
+          new PublicKey(senderWallet.publicKey)
+        )
+      })
+      .signers([signer])
+      .rpc()
+  }
+
+  console.log('Transaction:', tx)
+  return tx
+}
+export async function redeemEscrow(
+  connection: Connection,
+  redeemerWallet: WalletType,
+  tokenMint: anchor.Address | null,
+  sender: anchor.Address,
+  secret: string,
+  isSol: boolean
+): Promise<void> {
+  const keypair = Keypair.fromSecretKey(bs58.decode(redeemerWallet.privateKey))
+
+  const wallet = {
+    publicKey: keypair.publicKey,
+    signTransaction: async <T extends Transaction | anchor.web3.VersionedTransaction>(
+      tx: T
+    ): Promise<T> => {
+      if (tx instanceof Transaction) {
+        tx.partialSign(keypair)
+      } else {
+        // Handle VersionedTransaction if needed
+        tx.sign([keypair])
+      }
+      return tx
+    },
+    signAllTransactions: async <T extends Transaction | anchor.web3.VersionedTransaction>(
+      txs: T[]
+    ): Promise<T[]> => {
+      return txs.map((tx) => {
+        if (tx instanceof Transaction) {
+          tx.partialSign(keypair)
+        } else {
+          // Handle VersionedTransaction if needed
+          tx.sign([keypair])
+        }
+        return tx
+      })
+    }
+  }
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: 'processed'
+  })
+  const program = new Program<InstantSendProgram>(IDL as InstantSendProgram, provider)
+
+  const secretHash = hashSecret(secret)
+
+  // Derive escrow PDA
+  const [escrowAccount] = await PublicKey.findProgramAddress(
+    [isSol ? ESCROW_SEED_SOL : ESCROW_SEED_SPL, new Uint8Array(secretHash)],
+    program.programId
+  )
+
+  console.log('Escrow PDA:', escrowAccount.toBase58())
+
+  const tx = isSol
+    ? program.methods
+        .redeemFundsSol(secret)
+        .accounts({
+          signer: redeemerWallet.publicKey,
+          sender: new PublicKey(sender),
+          escrowAccount,
+          recipient: new PublicKey(redeemerWallet.publicKey)
+        })
+        .signers([keypair])
+    : program.methods
+        .redeemFundsSpl(secret)
+        .accounts({
+          signer: redeemerWallet.publicKey,
+          sender: new PublicKey(sender),
+          escrowAccount,
+          escrowTokenAccount: getAssociatedTokenAddressSync(
+            new PublicKey(tokenMint!),
+            escrowAccount,
+            true
+          ),
+          recipient: new PublicKey(redeemerWallet.publicKey),
+          tokenMint: new PublicKey(tokenMint!)
+        })
+        .signers([keypair])
+
+  const txSignature = await tx.rpc()
+  console.log('Transaction Signature:', txSignature)
+}
