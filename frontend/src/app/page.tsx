@@ -15,15 +15,21 @@ import { useWallet } from '@/contexts/WalletContext'
 import { contactsApi } from '@/services/api'
 import { Contact } from '@/types'
 import { RedeemEscrow } from '@/components/RedeemEscrow'
+import { tokenList } from '@/utils/tokens'
+import { redeemEscrow } from '@/utils/solanaUtils'
+import { Connection } from '@solana/web3.js'
 
 export default function Home() {
   const initData = useInitData()
   const viewport = useViewport()
 
+  const connection = new Connection('https://api.devnet.solana.com')
+
   const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isRedeeming, setIsRedeeming] = useState(false)
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined
@@ -65,13 +71,39 @@ export default function Home() {
       getContacts()
     }
   }, [currentUser, getContacts])
+  const handleRedeem = async (secret: string, sender: string, token: string) => {
+    console.log(secret, sender, token)
+    if (!walletSolana) {
+      toast.success('Create a wallet to redeem escrow')
+      return
+    }
+    try {
+      setIsRedeeming(true)
+      await redeemEscrow(
+        connection,
+        walletSolana,
+        token === 'SOL' ? tokenList[0].mintAddress : tokenList[1].mintAddress,
+        sender,
+        secret,
+        token === 'SOL'
+      )
+      toast.success('Redeemed successfully! Check your wallet.')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to redeem escrow')
+    } finally {
+      setIsRedeeming(false)
+    }
+  }
   useEffect(() => {
     if (!initData) return
     // const urlParams = new URLSearchParams(initData)
     // const startParam = urlParams.get('start')
     if (initData?.startParam) {
-      const [secret, sender] = initData?.startParam?.split('__')
-      console.log(secret, sender)
+      const [secret, sender, token] = initData?.startParam?.split('__')
+      if (secret && sender && token) {
+        handleRedeem(secret, sender, token)
+      }
     }
   }, [])
 
@@ -82,6 +114,12 @@ export default function Home() {
       transition={{ duration: 0.5 }}
       className="min-h-screen"
     >
+      {isRedeeming && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Redeeming escrow...</span>
+        </div>
+      )}
       <main className="max-w-7xl mx-auto p-4 space-y-6">
         {/* User Card */}
         <Card className="cursor-pointer">

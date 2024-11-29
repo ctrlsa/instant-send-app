@@ -14,14 +14,15 @@ export const RedeemEscrow = () => {
   const { walletSolana } = useWallet()
   const [inputUrl, setInputUrl] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isSol, setIsSol] = useState<boolean | null>(null)
   const connection = new Connection('https://api.devnet.solana.com')
 
   const parseInputUrl = (url: string) => {
     try {
       const urlObj = new URL(url)
       const param = urlObj.searchParams.get('startapp')
-      const [secret, sender] = param?.split('__') || []
-      console.log(secret, sender)
+      const [secret, sender, token] = param?.split('__') || []
+      setIsSol(token === 'SOL')
       return {
         secret,
         sender
@@ -32,7 +33,7 @@ export const RedeemEscrow = () => {
     }
   }
 
-  const handleRedeem = async (isSol: boolean) => {
+  const handleRedeem = async () => {
     if (!walletSolana) {
       toast.error('Wallet not connected')
       return
@@ -46,6 +47,18 @@ export const RedeemEscrow = () => {
 
     setLoading(true)
     try {
+      if (
+        isSol === null ||
+        isSol === undefined ||
+        params.sender === null ||
+        params.sender === undefined ||
+        params.secret === null ||
+        params.secret === undefined
+      ) {
+        console.log(isSol, params.sender, params.secret)
+        toast.error('Invalid redemption link')
+        return
+      }
       const signature = await redeemEscrow(
         connection,
         walletSolana,
@@ -55,10 +68,10 @@ export const RedeemEscrow = () => {
         isSol
       )
 
-      toast.success(`Redeem successful! Signature: ${signature}`)
+      toast.success(`Redeemed ${isSol ? 'SOL' : 'USDC'} successfully! Check your wallet.`)
     } catch (error) {
       console.error('Failed to redeem:', error)
-      toast.error(`Failed to redeem: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      toast.error(`Failed to redeem`)
     } finally {
       setLoading(false)
     }
@@ -84,7 +97,7 @@ export const RedeemEscrow = () => {
         <div className="flex gap-4 pt-4">
           <Button
             variant="default"
-            onClick={() => handleRedeem(true)}
+            onClick={() => handleRedeem()}
             disabled={loading}
             className="flex-1"
           >
@@ -94,22 +107,7 @@ export const RedeemEscrow = () => {
                 Processing
               </>
             ) : (
-              'Redeem SOL'
-            )}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => handleRedeem(false)}
-            disabled={loading}
-            className="flex-1"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing
-              </>
-            ) : (
-              'Redeem USDC'
+              'Redeem '
             )}
           </Button>
         </div>

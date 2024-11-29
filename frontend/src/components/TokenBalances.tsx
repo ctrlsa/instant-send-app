@@ -54,6 +54,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const [escrowSecret, setEscrowSecret] = useState<string | null>(null)
   const [escrowTx, setEscrowTx] = useState<string | null>(null)
   const [transferMode, setTransferMode] = useState<'direct' | 'escrow' | null>(null)
+  const [escrowToken, setEscrowToken] = useState<TokenWithPrice | null>(null)
 
   const updateTokenBalances = useCallback(
     async (isRefreshAction = false) => {
@@ -142,6 +143,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
         // Escrow transfer
         const secret = Math.random().toString(36).substring(2, 15)
         setEscrowSecret(secret)
+        setEscrowToken(selectedToken)
 
         const expirationTime = Math.floor(Date.now() / 1000) + 24 * 60 * 60
         const tx = await initializeEscrow(
@@ -174,8 +176,8 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   }
 
   const getRedeemLink = () => {
-    if (!escrowSecret || !escrowTx) return ''
-    return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}`
+    if (!escrowSecret || !escrowTx || !escrowToken) return ''
+    return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
   }
 
   return (
