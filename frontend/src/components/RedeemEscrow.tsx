@@ -2,10 +2,9 @@ import React, { useState } from 'react'
 import { useWallet } from '@/contexts/WalletContext'
 import { Connection } from '@solana/web3.js'
 import { redeemEscrow } from '@/utils/solanaUtils'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { tokenList } from '@/utils/tokens'
@@ -14,24 +13,7 @@ export const RedeemEscrow = () => {
   const { walletSolana } = useWallet()
   const [inputUrl, setInputUrl] = useState('')
   const [loading, setLoading] = useState(false)
-  const [isSol, setIsSol] = useState<boolean | null>(null)
   const connection = new Connection('https://api.devnet.solana.com')
-
-  const parseInputUrl = (url: string) => {
-    try {
-      const urlObj = new URL(url)
-      const param = urlObj.searchParams.get('startapp')
-      const [secret, sender, token] = param?.split('__') || []
-      setIsSol(token === 'SOL')
-      return {
-        secret,
-        sender
-      }
-    } catch (error) {
-      console.error('Invalid URL:', error)
-      return null
-    }
-  }
 
   const handleRedeem = async () => {
     if (!walletSolana) {
@@ -39,39 +21,29 @@ export const RedeemEscrow = () => {
       return
     }
 
-    const params = parseInputUrl(inputUrl)
-    if (!params) {
-      toast.error('Invalid redemption link')
-      return
-    }
-
     setLoading(true)
     try {
-      if (
-        isSol === null ||
-        isSol === undefined ||
-        params.sender === null ||
-        params.sender === undefined ||
-        params.secret === null ||
-        params.secret === undefined
-      ) {
-        console.log(isSol, params.sender, params.secret)
-        toast.error('Invalid redemption link')
-        return
+      const urlObj = new URL(inputUrl)
+      const [secret, sender, token] = urlObj.searchParams.get('startapp')?.split('__') || []
+      const isSol = token === 'SOL'
+
+      if (!secret || !sender || token === undefined) {
+        throw new Error('Invalid redemption link')
       }
-      const signature = await redeemEscrow(
+
+      await redeemEscrow(
         connection,
         walletSolana,
         isSol ? tokenList[0].mintAddress : tokenList[1].mintAddress,
-        params.sender,
-        params.secret,
+        sender,
+        secret,
         isSol
       )
 
-      toast.success(`Redeemed ${isSol ? 'SOL' : 'USDC'} successfully! Check your wallet.`)
+      toast.success(`Redeemed ${isSol ? 'SOL' : 'USDC'} successfully!`)
     } catch (error) {
       console.error('Failed to redeem:', error)
-      toast.error(`Failed to redeem`)
+      toast.error('Failed to redeem: Invalid link or network error')
     } finally {
       setLoading(false)
     }
@@ -79,38 +51,23 @@ export const RedeemEscrow = () => {
 
   return (
     <Card className="max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Redeem Escrow</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="inputUrl">Redemption Link</Label>
-          <Input
-            id="inputUrl"
-            type="text"
-            placeholder="Enter the redemption link"
-            value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
-          />
-        </div>
-
-        <div className="flex gap-4 pt-4">
-          <Button
-            variant="default"
-            onClick={() => handleRedeem()}
-            disabled={loading}
-            className="flex-1"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing
-              </>
-            ) : (
-              'Redeem '
-            )}
-          </Button>
-        </div>
+      <CardContent className="space-y-4 pt-6">
+        <Input
+          type="text"
+          placeholder="Enter redemption link"
+          value={inputUrl}
+          onChange={(e) => setInputUrl(e.target.value)}
+        />
+        <Button variant="default" onClick={handleRedeem} disabled={loading} className="w-full">
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing
+            </>
+          ) : (
+            'Redeem Escrow'
+          )}
+        </Button>
       </CardContent>
     </Card>
   )
