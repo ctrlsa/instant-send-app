@@ -111,11 +111,8 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({ wallet, onWalletCreat
             >
               <div className="flex flex-col gap-2">
                 <h1 className="tracking-tighter text-4xl md:text-5xl font-black">
-                  Create Your {pathTypeName} Wallet
+                  Create Solana Wallet
                 </h1>
-                <p className="text-primary/80 font-semibold text-lg md:text-xl">
-                  Your recovery phrase will be shown after creation
-                </p>
               </div>
 
               <Alert className="bg-muted">
@@ -123,9 +120,7 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({ wallet, onWalletCreat
                 <AlertTitle>About Recovery Phrases</AlertTitle>
                 <AlertDescription className="mt-2">
                   <ul className="list-disc list-inside space-y-1">
-                    <li>
-                      You can choose to save it now or back it up later from Security Settings
-                    </li>
+                    <li>You can back it up later from Security Settings</li>
                     <li>Never share your recovery phrase with anyone</li>
                   </ul>
                 </AlertDescription>

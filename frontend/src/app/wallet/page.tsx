@@ -26,7 +26,7 @@ export default function WalletManagement() {
   }, [initData])
 
   return (
-    <div className="min-h-screen p-3 md:p-6">
+    <div className="p-3 md:p-6">
       {!walletSolana ? (
         <MotionCard
           initial={{ scale: 0.95, opacity: 0 }}
@@ -88,7 +88,13 @@ export default function WalletManagement() {
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <Button
                     variant="secondary"
-                    className="w-full sm:w-auto  text-gray-200 font-medium py-2 px-4 rounded-lg "
+                    onClick={() =>
+                      window.open(
+                        `https://explorer.solana.com/address/${walletSolana.publicKey}`,
+                        '_blank'
+                      )
+                    }
+                    className="w-full sm:w-auto 0font-medium py-2 px-4 rounded-lg"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Explorer
