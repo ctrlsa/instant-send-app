@@ -60,7 +60,7 @@ const SendPage = () => {
           </CardContent>
         </Card>
       )}
-      <EscrowOperations />
+      {/* <EscrowOperations /> */}
     </>
   )
 }
