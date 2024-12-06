@@ -8,14 +8,20 @@ import { useTheme } from 'next-themes'
 import { Contact } from '@/types/index'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 const ContactsPage = () => {
+  const router = useRouter()
   const initData = useInitData()
   const { theme } = useTheme()
   const [contacts, setContacts] = useState<Contact[]>([])
   const { walletSolana } = useWallet()
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  useEffect(() => {
+    router.push('/')
+  }, [router])
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined

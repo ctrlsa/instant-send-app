@@ -12,12 +12,12 @@ export default function BottomNav() {
       <div className="flex justify-around items-center h-16">
         <NavItem href="/" icon={Home} label="Home" isActive={pathname === '/'} />
         <NavItem href="/send" icon={Send} label="Send" isActive={pathname === '/send'} />
-        <NavItem
+        {/* <NavItem
           href="/contacts"
           icon={Contact2}
           label="Contacts"
           isActive={pathname === '/contacts'}
-        />
+        /> */}
         <NavItem href="/wallet" icon={Wallet} label="Wallet" isActive={pathname === '/wallet'} />
         <NavItem
           href="/settings"
