@@ -50,7 +50,7 @@ type BinancePrice = {
   price: string
 }
 
-async function fetchTokenPrices(symbols: string[]): Promise<Record<string, number>> {
+export async function fetchTokenPrices(symbols: string[]): Promise<Record<string, number>> {
   const binanceSymbols: Record<string, string> = {
     SOL: 'SOLUSDT',
     BONK: 'BONKUSDT'

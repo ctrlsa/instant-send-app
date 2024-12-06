@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { useWallet } from '@/contexts/WalletContext'
 import { tokenList } from '@/utils/tokens'
-import { fetchTokenBalances, sendTokens, Token, initializeEscrow } from '@/utils/solanaUtils'
+import { fetchTokenBalances, Token, initializeEscrow, fetchTokenPrices } from '@/utils/solanaUtils'
 import { cn } from '@/lib/utils'
 import { BN } from '@coral-xyz/anchor'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -44,7 +44,31 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   )
   const utils = initUtils()
 
-  const [sendAmount, setSendAmount] = useState('1')
+  const [sendAmount, setSendAmount] = useState<string>('0.05')
+  const [priceLoaded, setPriceLoaded] = useState(false)
+
+  useEffect(() => {
+    const initializeDefaultAmount = async () => {
+      try {
+        if (selectedToken?.symbol === 'USDC') {
+          setSendAmount('1.00') // Set to 1 USDC by default
+          return
+        }
+
+        const prices = await fetchTokenPrices(['SOL'])
+        const solPrice = prices['SOL'] // Fallback to 20 if price fetch fails
+        setSendAmount((1 / solPrice).toFixed(4)) // Convert $1 to SOL amount
+      } catch (error) {
+        console.error('Error fetching SOL price:', error)
+        setSendAmount((1 / 20).toFixed(4)) // Fallback to default $20 price
+      } finally {
+        setPriceLoaded(true)
+      }
+    }
+
+    initializeDefaultAmount()
+  }, [priceLoaded, selectedToken])
+
   const [escrowSecret, setEscrowSecret] = useState<string | null>(null)
   const [escrowTx, setEscrowTx] = useState<string | null>(null)
   const [escrowToken, setEscrowToken] = useState<TokenWithPrice | null>(null)
