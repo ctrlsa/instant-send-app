@@ -147,7 +147,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       )
 
       setEscrowTx(tx)
-      toast.success('Escrow created successfully')
+      toast.success('Transfer created successfully, share link with recipient')
       setShowShareModal(true)
 
       await updateTokenBalances()
@@ -155,7 +155,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       console.error('Error:', error)
       if (error instanceof Error) {
         if (error.message.includes('0x1')) {
-          toast.error(`Insufficient funds for transfer and fees. Please check your balance.`)
+          toast.error('Insufficient funds, please top up your account')
         } else {
           toast.error(`Transaction failed: ${error.message}`)
         }
@@ -272,16 +272,15 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                       {isCreatingEscrow ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                          Creating Escrow...
+                          Sending...
                         </>
                       ) : (
                         <>
-                          <Lock className="h-5 w-5 mr-2" />
-                          Create Escrow
+                          <Send className="h-5 w-5 mr-2" />
+                          Send via Telegram
                         </>
                       )}
                     </Button>
-
                     {escrowSecret && escrowTx && (
                       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                         <DialogContent className="sm:max-w-md">
