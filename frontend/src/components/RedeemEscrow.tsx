@@ -50,11 +50,11 @@ export const RedeemEscrow = () => {
   }
 
   return (
-    <Card className="max-w-md mx-auto">
+    <Card>
       <CardContent className="space-y-4 pt-6">
         <Input
           type="text"
-          placeholder="Enter redemption link"
+          placeholder="Enter link from friend"
           value={inputUrl}
           onChange={(e) => setInputUrl(e.target.value)}
         />
@@ -65,7 +65,7 @@ export const RedeemEscrow = () => {
               Processing
             </>
           ) : (
-            'Redeem Escrow'
+            'Receive'
           )}
         </Button>
       </CardContent>

@@ -117,48 +117,47 @@ export default function Home() {
   }, [])
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col justify-end h-[70vh]" // Adjust the pb value as needed to account for the footer
+    >
       {isRedeeming && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
           <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Redeeming escrow...</span>
+          <span className="ml-2">Receiving tokens...</span>
         </div>
       )}
-      <main className="max-w-7xl mx-auto p-4 space-y-6">
-        {/* Token Balances */}
-        {walletSolana && (
+
+      <div>
+        {/* Receive or Redeem Escrow */}
+        <div className="mb-4">{walletSolana && <RedeemEscrow />}</div>
+
+        {/* Wallet Management Card */}
+        {!walletSolana && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="mt-16"
           >
-            <TokenBalances contacts={contacts} />
+            <Card>
+              <CardContent className="flex justify-between items-center py-4">
+                <div className="flex items-center space-x-2">
+                  <WalletIcon className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Manage Wallet</span>
+                </div>
+                <Link href="/wallet">
+                  <Button variant="outline">
+                    {walletSolana ? 'View Details' : 'Create Wallet'}
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
-
-        {/* Redeem Escrow */}
-        {walletSolana && <RedeemEscrow />}
-      </main>
-      {!walletSolana && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mt-16"
-        >
-          <Card>
-            <CardContent className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-2">
-                <WalletIcon className="h-5 w-5 text-primary" />
-                <span className="font-medium">Manage Wallet</span>
-              </div>
-              <Link href="/wallet">
-                <Button variant="outline">{walletSolana ? 'View Details' : 'Create Wallet'}</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+      </div>
     </motion.div>
   )
 }

@@ -181,7 +181,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex flex-row justify-between items-center">
-          <CardTitle className="font-bold">Token Balances</CardTitle>
+          <CardTitle className="font-bold">Send</CardTitle>
           <Button
             variant="ghost"
             size="icon"
