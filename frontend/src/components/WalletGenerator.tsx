@@ -111,7 +111,7 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({ wallet, onWalletCreat
             >
               <div className="flex flex-col gap-2">
                 <h1 className="tracking-tighter text-4xl md:text-5xl font-black">
-                  Create Solana Wallet
+                  Create Solana wallet
                 </h1>
               </div>
 

@@ -20,7 +20,7 @@ const Navbar = () => {
         <div className="flex flex-col gap-4">
           <span className="tracking-tighter text-xl font-extrabold text-primary flex gap-2 items-center">
             <Image src={ctrl} alt="ctrl" width={40} data-testid="ctrl-image" className="p-2" />
-            Solana Wallet
+            Solana wallet
           </span>
         </div>
         <ModeToggle />

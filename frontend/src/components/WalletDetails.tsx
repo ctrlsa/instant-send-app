@@ -46,10 +46,10 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
       onWalletDelete()
       await walletApi.deleteWallet(user.id)
 
-      toast.success('Solana Wallet deleted successfully!')
+      toast.success('Solana wallet deleted successfully!')
     } catch (err) {
       console.error(err)
-      toast.error('Error deleting Solana Wallet')
+      toast.error('Error deleting Solana wallet')
     }
   }
 

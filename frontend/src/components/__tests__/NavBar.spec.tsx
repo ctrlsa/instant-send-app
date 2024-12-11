@@ -29,7 +29,7 @@ describe('Navbar Component', () => {
     it('renders title,', () => {
       render(<Navbar />)
 
-      expect(screen.getByText('Solana Wallet').textContent).toBe('Solana Wallet')
+      expect(screen.getByText('Solana wallet').textContent).toBe('Solana wallet')
     })
     it('renders image', () => {
       render(<Navbar />)
