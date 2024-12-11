@@ -111,8 +111,8 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
 
   const formatBalance = (balance: number) => {
     return balance.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 8
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4
     })
   }
 
@@ -180,20 +180,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex flex-row justify-between items-center">
-          <CardTitle className="font-bold">Send</CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => updateTokenBalances(true)}
-            disabled={loading || isRefreshing}
-          >
-            <RefreshCcw className={cn('h-4 w-4', (loading || isRefreshing) && 'animate-spin')} />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="p-4">
         {loading && !tokens.length ? (
           <div className="flex justify-center items-center py-8">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -238,88 +225,86 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
               <div className="text-center py-8 text-muted-foreground">No tokens found</div>
             )}
 
-            <AnimatePresence>
-              {selectedToken && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-4"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedToken(null)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Amount</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        value={sendAmount}
-                        onChange={(e) => setSendAmount(e.target.value)}
-                        placeholder="Enter amount"
-                      />
-                    </div>
-
+            {selectedToken && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
+                  <div className="flex flex-row justify-between items-center">
                     <Button
-                      className="w-full py-4"
-                      onClick={handleSend}
-                      disabled={isCreatingEscrow}
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => updateTokenBalances(true)}
+                      disabled={loading || isRefreshing}
                     >
-                      {isCreatingEscrow ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-5 w-5 mr-2" />
-                          Send via Telegram
-                        </>
-                      )}
+                      <RefreshCcw
+                        className={cn('h-4 w-4', (loading || isRefreshing) && 'animate-spin')}
+                      />
                     </Button>
-                    {escrowSecret && escrowTx && (
-                      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Share Escrow Link</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label>Redeem Link</Label>
-                              <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
-                                {getRedeemLink()}
-                              </div>
-                            </div>
-
-                            <Button
-                              className="w-full"
-                              variant="secondary"
-                              onClick={() => {
-                                const link = getRedeemLink()
-                                if (link) {
-                                  utils.shareURL(link)
-                                }
-                              }}
-                            >
-                              <Send className="h-5 w-5 mr-2" />
-                              Share via Telegram
-                            </Button>
-                            <p className="text-sm text-muted-foreground text-center">
-                              Link will expire in 24 hours
-                            </p>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={sendAmount}
+                      onChange={(e) => setSendAmount(e.target.value)}
+                      placeholder="Enter amount"
+                    />
+                  </div>
+
+                  <Button className="w-full py-4" onClick={handleSend} disabled={isCreatingEscrow}>
+                    {isCreatingEscrow ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-5 w-5 mr-2" />
+                        Send via Telegram
+                      </>
+                    )}
+                  </Button>
+                  {escrowSecret && escrowTx && (
+                    <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Share Escrow Link</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Redeem Link</Label>
+                            <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
+                              {getRedeemLink()}
+                            </div>
+                          </div>
+
+                          <Button
+                            className="w-full"
+                            variant="secondary"
+                            onClick={() => {
+                              const link = getRedeemLink()
+                              if (link) {
+                                utils.shareURL(link)
+                              }
+                            }}
+                          >
+                            <Send className="h-5 w-5 mr-2" />
+                            Share via Telegram
+                          </Button>
+                          <p className="text-sm text-muted-foreground text-center">
+                            Link will expire in 24 hours
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
