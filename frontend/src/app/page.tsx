@@ -83,7 +83,7 @@ export default function Home() {
       const balance = await connection.getBalance(new PublicKey(walletSolana.publicKey))
       // check if balance is greater than 0
       if (balance === 0) {
-        toast.error('Add some SOL to your wallet to redeem escrow')
+        toast.error('Insufficient balance. Please, top up')
         return
       }
     }

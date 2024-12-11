@@ -156,7 +156,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       console.error('Error:', error)
       if (error instanceof Error) {
         if (error.message.includes('0x1')) {
-          toast.error('Insufficient funds, please top up your account')
+          toast.error('Insufficient balance. Please, top up')
         } else {
           toast.error(`Transaction failed: ${error.message}`)
         }
