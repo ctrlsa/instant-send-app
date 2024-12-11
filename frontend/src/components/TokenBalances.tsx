@@ -112,14 +112,15 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const formatBalance = (balance: number) => {
     return balance.toLocaleString(undefined, {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 6
+      maximumFractionDigits: 8
     })
   }
 
   const formatUSD = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
+      maximumFractionDigits: 4
     }).format(amount)
   }
 
