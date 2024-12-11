@@ -45,7 +45,7 @@ function NavItem({
       }`}
     >
       <Icon
-        className={`${isActive ? 'h-7 w-7' : 'h-6 w-6'} transition-all duration-200 ease-in-out`}
+        className={`h-6 w-6 transition-all duration-200 ease-in-out ${isActive ? 'text-primary' : ''}`}
       />
       <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : ''}`}>{label}</span>
     </Link>
