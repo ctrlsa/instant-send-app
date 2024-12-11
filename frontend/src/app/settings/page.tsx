@@ -83,7 +83,7 @@ const SettingsPage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="p-4"
+      className="p-4 flex justify-end items-center h-[70vh]"
     >
       <Card>
         <CardHeader>

@@ -43,7 +43,7 @@ const SendPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="p-4"
+          className="p-4 flex flex-col justify-end items-center h-[70vh]"
         >
           <TokenBalances contacts={contacts} defaultToken="SOL" />
         </motion.div>
