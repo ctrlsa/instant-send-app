@@ -143,7 +143,6 @@ export default function SecurityPage() {
     <Card className="m-4">
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
-        <CardDescription>Manage your wallet security and backup settings</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {!hasPassword ? (

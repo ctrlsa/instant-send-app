@@ -65,7 +65,7 @@ export const RedeemEscrow = () => {
               Processing
             </>
           ) : (
-            'Receive'
+            'Receive crypto'
           )}
         </Button>
       </CardContent>

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2, Lock, Unlock, Eye, EyeOff, Info } from 'lucide-react'
-import ctrl from '@/app/_assets/ctrl.svg'
 import Image from 'next/image'
 import { useInitData } from '@telegram-apps/sdk-react'
 import {
@@ -112,13 +111,11 @@ export default function Auth({ children }: AuthProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-background mt-16">
-      <Image src={ctrl} alt="ctrl" width={50} data-testid="ctrl-image" className="m-10" />
-
+    <div className="min-h-screen flex flex-col items-center bg-background mt-32">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold text-center">
-            {hasPassword ? 'Welcome Back' : 'Create Your Password'}
+            {hasPassword ? 'Welcome Back!' : 'Create Your Password'}
           </CardTitle>
         </CardHeader>
         <CardContent>

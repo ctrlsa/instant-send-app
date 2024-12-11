@@ -12,12 +12,6 @@ export default function BottomNav() {
       <div className="flex justify-around items-center h-16">
         <NavItem href="/" icon={Receipt} label="Receive" isActive={pathname === '/'} />
         <NavItem href="/send" icon={Send} label="Send" isActive={pathname === '/send'} />
-        {/* <NavItem
-          href="/contacts"
-          icon={Contact2}
-          label="Contacts"
-          isActive={pathname === '/contacts'}
-        /> */}
         <NavItem href="/wallet" icon={Wallet} label="Wallet" isActive={pathname === '/wallet'} />
         <NavItem
           href="/settings"
@@ -44,10 +38,16 @@ function NavItem({
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center justify-center w-full h-full ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+      className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 ease-in-out ${
+        isActive
+          ? 'text-primary bg-primary/10 font-medium'
+          : 'text-muted-foreground hover:text-primary/80'
+      }`}
     >
-      <Icon className="h-6 w-6" />
-      <span className="text-xs mt-1">{label}</span>
+      <Icon
+        className={`${isActive ? 'h-7 w-7' : 'h-6 w-6'} transition-all duration-200 ease-in-out`}
+      />
+      <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : ''}`}>{label}</span>
     </Link>
   )
 }
