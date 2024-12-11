@@ -1,12 +1,12 @@
 import { TokenSOL, TokenUSDC } from '@web3icons/react'
 import { Token } from './solanaUtils'
 
-// Custom component for USDC with Solana logo overlay
+// Update the USDCWithSolanaIcon component
 const USDCWithSolanaIcon = () => (
-  <div className="relative inline-block">
-    <TokenUSDC variant="branded" className="h-6 w-6" />
-    <div className="absolute -bottom-2 -right-2 rounded-full ">
-      <TokenSOL variant="branded" className="h-4 w-4" />
+  <div className="relative inline-block h-8 w-8">
+    <TokenUSDC variant="branded" className="h-full w-full" />
+    <div className="absolute -bottom-1 -right-1 rounded-full p-0.5">
+      <TokenSOL variant="branded" className="h-3 w-3" />
     </div>
   </div>
 )
@@ -14,7 +14,7 @@ const USDCWithSolanaIcon = () => (
 export const tokenList: Omit<Token, 'balance'>[] = [
   {
     symbol: 'SOL',
-    icon: <TokenSOL variant="branded" className="h-8 w-8" />,
+    icon: <TokenSOL variant="branded" className="h-7 w-7" />,
     mintAddress: 'So11111111111111111111111111111111111111112'
   },
   {

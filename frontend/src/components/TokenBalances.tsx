@@ -203,8 +203,8 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                         selectedToken?.symbol === token.symbol && 'border-2 border-primary'
                       )}
                     >
-                      <CardContent className="flex flex-col items-center justify-center p-4">
-                        <span className="text-2xl mb-2">{token.icon}</span>
+                      <CardContent className="flex flex-col items-center justify-center p-4 h-32">
+                        <div className="mb-2">{token.icon}</div>
                         <h3 className="font-bold">{token.symbol}</h3>
                         <p className="text-sm text-muted-foreground">
                           {formatBalance(token.balance ? token.balance : 0)}
