@@ -177,13 +177,13 @@ export const sendTokens = async (
     const balance = await connection.getBalance(new PublicKey(wallet.publicKey))
     selectedToken.balance = balance / LAMPORTS_PER_SOL
     if (selectedToken.balance === undefined) {
-      throw new Error('Insufficient SOL balance for this transfer')
+      throw new Error('Insufficient balance. Please, top up')
     }
     const recipientPubkey = new PublicKey(recipient)
     const lamports = parseFloat(sendAmount) * LAMPORTS_PER_SOL
 
     if (lamports > selectedToken.balance * LAMPORTS_PER_SOL) {
-      throw new Error('Insufficient SOL balance for this transfer')
+      throw new Error('Insufficient balance. Please, top up')
     }
 
     const transaction = new Transaction().add(

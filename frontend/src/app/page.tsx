@@ -100,7 +100,7 @@ export default function Home() {
       toast.success('Redeemed successfully! Check your wallet.')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to redeem escrow')
+      toast.error('Failed to receive tokens')
     } finally {
       setIsRedeeming(false)
     }
