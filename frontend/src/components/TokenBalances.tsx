@@ -108,8 +108,13 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       updateTokenBalances()
     }
   }, [connection, updateTokenBalances])
-
-  const formatBalance = (balance: number) => {
+  const formatBalance = (balance: number, token: TokenWithPrice) => {
+    if (token.symbol === 'USDC') {
+      return balance.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    }
     return balance.toLocaleString(undefined, {
       minimumFractionDigits: 4,
       maximumFractionDigits: 4
@@ -207,7 +212,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                         <div className="mb-2">{token.icon}</div>
                         <h3 className="font-bold">{token.symbol}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {formatBalance(token.balance ? token.balance : 0)}
+                          {formatBalance(token.balance ? token.balance : 0, token)}
                         </p>
                         {token.usdPrice && token.balance ? (
                           <p className="text-xs text-muted-foreground mt-1">
