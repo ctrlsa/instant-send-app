@@ -26,35 +26,35 @@ export default function WalletManagement() {
   }, [initData])
 
   return (
-    <div className="p-3 md:p-6 h-[70vh]">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="p-3 md:p-6 h-[70vh]"
+    >
       {!walletSolana ? (
         <MotionCard
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="overflow-hidden shadow-lg border"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden shadow-lg border flex-grow"
         >
           <CardContent className="p-6">
             <div className="grid gap-8 md:grid-cols-2">
-              <motion.div
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <WalletGenerator
-                  user={currentUser}
-                  wallet={walletSolana}
-                  onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
-                />
-              </motion.div>
+              <WalletGenerator
+                user={currentUser}
+                wallet={walletSolana}
+                onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+              />
             </div>
           </CardContent>
         </MotionCard>
       ) : (
         <motion.div
-          initial={{ x: 20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
           className="pb-4"
         >
           <WalletDetails
@@ -65,16 +65,16 @@ export default function WalletManagement() {
         </motion.div>
       )}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
         className="max-w-4xl mx-auto space-y-4"
       >
         {walletSolana && (
           <MotionCard
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
             className="overflow-hidden shadow-lg border "
           >
             <CardContent className="p-4">
@@ -94,7 +94,7 @@ export default function WalletManagement() {
                         '_blank'
                       )
                     }
-                    className="w-full sm:w-auto 0font-medium py-2 px-4 rounded-lg"
+                    className="w-full sm:w-auto font-medium py-2 px-4 rounded-lg"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Explorer
@@ -106,6 +106,6 @@ export default function WalletManagement() {
           </MotionCard>
         )}
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
