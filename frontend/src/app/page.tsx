@@ -6,7 +6,6 @@ import { useInitData, useViewport } from '@telegram-apps/sdk-react'
 import { Loader2, WalletIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
-import TokenBalances from '@/components/TokenBalances'
 import { useWallet } from '@/contexts/WalletContext'
 import { contactsApi } from '@/services/api'
 import { Contact } from '@/types'
@@ -53,12 +52,13 @@ export default function Home() {
           setContacts(res)
 
           if (isRefreshAction) {
-            toast.success('Contacts updated successfully')
+            // toast.success('Contacts updated successfully')
+            console.log('Contacts updated successfully')
           }
         }
       } catch (e) {
         console.error(e)
-        toast.error('Failed to fetch contacts')
+        // toast.error('Failed to fetch contacts')
       } finally {
         setIsFetchingContacts(false)
         setIsRefreshing(false)
@@ -76,7 +76,7 @@ export default function Home() {
   const handleRedeem = async (secret: string, sender: string, token: string) => {
     console.log(secret, sender, token)
     if (!walletSolana) {
-      toast.success('Create a wallet to redeem escrow')
+      toast.success('Create a wallet to receive tokens')
       return
     }
     if (walletSolana) {
@@ -97,10 +97,10 @@ export default function Home() {
         secret,
         token === 'SOL'
       )
-      toast.success('Redeemed successfully! Check your wallet.')
+      toast.success('Received tokens successfully! Check your wallet.')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to receive tokens')
+      toast.error('Invalid link or network error')
     } finally {
       setIsRedeeming(false)
     }
