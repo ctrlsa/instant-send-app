@@ -18,10 +18,10 @@ export function createBot(token: string) {
   bot.command("start", async (ctx) => {
     if (process.env.WEBAPP_URL) {
       let keyboard = new InlineKeyboard().webApp(
-        "Open Solana Wallet",
+        "Open wallet",
         process.env.WEBAPP_URL
       );
-      await ctx.reply("Press the button below to open the App:", {
+      await ctx.reply("Press the button below to open wallet", {
         reply_markup: keyboard,
       });
     }
