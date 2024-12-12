@@ -43,7 +43,7 @@ export const RedeemEscrow = () => {
       toast.success(`Redeemed ${isSol ? 'SOL' : 'USDC'} successfully!`)
     } catch (error) {
       console.error('Failed to redeem:', error)
-      toast.error('Failed to receive tokens: Invalid link or network error')
+      toast.error('Invalid link or network error')
     } finally {
       setLoading(false)
     }
