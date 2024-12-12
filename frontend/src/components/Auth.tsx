@@ -111,11 +111,11 @@ export default function Auth({ children }: AuthProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-background mt-32">
+    <div className="h-[70vh] flex flex-col items-center justify-center bg-background mt-32">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold text-center">
-            {hasPassword ? 'Welcome Back!' : 'Create Your Password'}
+            {hasPassword ? 'Welcome back!' : 'Create your password'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -165,7 +165,7 @@ export default function Auth({ children }: AuthProps) {
               }
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
-              {hasPassword ? 'Unlock your Wallet' : 'Create Your Password'}
+              {hasPassword ? 'Unlock your Wallet' : 'Create your password'}
             </Button>
             {!hasPassword ? (
               <div className="flex items-center space-x-2 rounded-md border px-4 py-3 text-sm text-muted-foreground">
