@@ -42,7 +42,7 @@ const SendPage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-[70vh] flex flex-col"
+      className="h-[70vh] flex flex-col justify-end"
     >
       {walletSolana ? (
         <motion.div
@@ -54,8 +54,8 @@ const SendPage = () => {
           <TokenBalances contacts={contacts} defaultToken="SOL" />
         </motion.div>
       ) : (
-        <Card className="flex-grow">
-          <CardContent className="flex justify-between items-center py-4 h-full">
+        <Card className="flex flex-col justify-end">
+          <CardContent className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <WalletIcon className="h-5 w-5 text-primary" />
               <span className="font-medium">Manage Wallet</span>
