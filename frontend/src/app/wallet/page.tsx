@@ -26,7 +26,7 @@ export default function WalletManagement() {
   }, [initData])
 
   return (
-    <div className="p-3 md:p-6">
+    <div className="p-3 md:p-6 h-[70vh]">
       {!walletSolana ? (
         <MotionCard
           initial={{ scale: 0.95, opacity: 0 }}
