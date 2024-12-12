@@ -26,13 +26,13 @@ const settingsOptions = [
   },
   {
     id: 'explorer',
-    label: 'View Wallet on Explorer',
+    label: 'View wallet on explorer',
     icon: ExternalLink,
     external: true
   },
   {
     id: 'transactions',
-    label: 'View Wallet Transactions',
+    label: 'View wallet transactions',
     icon: List,
     path: '/transactions'
   },
