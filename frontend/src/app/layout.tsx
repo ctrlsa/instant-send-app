@@ -12,7 +12,7 @@ import { ThemeProvider } from '@/components/themeprovider'
 import { Toaster } from '@/components/ui/sonner'
 import { WalletProvider } from '@/contexts/WalletContext'
 import { CSPostHogProvider } from '@/contexts/PostHogProvider'
-import { NavigationProvider } from '@/contexts/NavigationProvider'
+import { EventProvider } from '@/contexts/EventProvider'
 import BottomNav from '@/components/BottomNav'
 import {
   AlertCircleIcon,
@@ -31,37 +31,39 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <body>
-        <NavigationProvider>
-          <CSPostHogProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <WalletProvider>
-                <Toaster
-                  position="top-center"
-                  icons={{
-                    success: <CheckCircleIcon className="text-green-500" />,
-                    info: <InfoIcon className="text-blue-500" />,
-                    warning: <AlertTriangleIcon className="text-yellow-500" />,
-                    error: <AlertCircleIcon className="text-red-500" />,
-                    loading: <Loader2Icon className="text-blue-500" />
-                  }}
-                />{' '}
-                <Root>
-                  <Navbar />
-                  <Auth>
-                    <main className="pt-16 pb-16"> {children}</main>
-                  </Auth>
+        <CSPostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <WalletProvider>
+              <Toaster
+                position="top-center"
+                icons={{
+                  success: <CheckCircleIcon className="text-green-500" />,
+                  info: <InfoIcon className="text-blue-500" />,
+                  warning: <AlertTriangleIcon className="text-yellow-500" />,
+                  error: <AlertCircleIcon className="text-red-500" />,
+                  loading: <Loader2Icon className="text-blue-500" />
+                }}
+              />{' '}
+              <Root>
+                <Navbar />
+                <Auth>
+                  <main className="pt-16 pb-16">
+                    <EventProvider>
+                      <Root>{children}</Root>
+                    </EventProvider>
+                  </main>
+                </Auth>
 
-                  <BottomNav />
-                </Root>
-              </WalletProvider>
-            </ThemeProvider>
-          </CSPostHogProvider>
-        </NavigationProvider>
+                <BottomNav />
+              </Root>
+            </WalletProvider>
+          </ThemeProvider>
+        </CSPostHogProvider>
       </body>
     </html>
   )

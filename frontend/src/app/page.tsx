@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useInitData, useViewport } from '@telegram-apps/sdk-react'
+import { postEvent, useInitData, useViewport } from '@telegram-apps/sdk-react'
 import { Loader2, WalletIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -34,6 +34,11 @@ export default function Home() {
     const { id, username, firstName, lastName } = initData.user
     return { id: id.toString(), username, name: `${firstName} ${lastName}` }
   }, [initData])
+  useEffect(() => {
+    postEvent('web_app_setup_back_button', {
+      is_visible: true
+    })
+  }, [])
 
   useEffect(() => {
     const vp = viewport
