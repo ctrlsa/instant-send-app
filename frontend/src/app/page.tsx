@@ -38,6 +38,9 @@ export default function Home() {
     postEvent('web_app_setup_back_button', {
       is_visible: true
     })
+    postEvent('web_app_setup_swipe_behavior', {
+      allow_vertical_swipe: false
+    })
   }, [])
 
   useEffect(() => {
