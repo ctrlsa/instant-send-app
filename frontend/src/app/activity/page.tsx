@@ -83,9 +83,8 @@ export default function ActivityPage() {
                       commitment: 'finalized'
                     })
                     const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
-                    console.log('tx', tx)
                     const amount = tx?.meta?.postTokenBalances?.[1]?.uiTokenAmount?.uiAmount ?? 0
-                    if (Math.abs(amount).toFixed(2) == 0) {
+                    if (Math.abs(amount).toFixed(2) === '0.00') {
                       return null
                     }
                     const type = amount > 0 ? 'received' : 'sent'
