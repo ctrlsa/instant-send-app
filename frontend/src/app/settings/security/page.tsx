@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Lock, Unlock, Shield, Download, Trash2 } from 'lucide-react'
 import { useInitData } from '@telegram-apps/sdk-react'
 import { checkPasswordExists, createPassword, login, removePassword } from '@/utils/auth'
+import { motion } from 'framer-motion'
+import WalletDetails from '@/components/WalletDetails'
+import { useWallet } from '@/contexts/WalletContext'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -23,6 +26,7 @@ import { retrieveMnemonic, deleteMnemonic, hasMnemonic } from '@/utils/solanaUti
 
 export default function SecurityPage() {
   const [password, setPassword] = useState('')
+  const { walletSolana, setWalletSolana } = useWallet()
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [hasPassword, setHasPassword] = useState(false)
@@ -140,43 +144,43 @@ export default function SecurityPage() {
   }
 
   return (
-    <Card className="m-4">
-      <CardHeader>
-        <CardTitle>Security Settings</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {!hasPassword ? (
-          <form onSubmit={handleSetPassword} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              {error && <p className="text-sm text-red-500">{error}</p>}
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Setting Password...' : 'Set Password'}
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <div className="flex space-x-2">
+    <div className="h-[70vh] overflow-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Security Settings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!hasPassword ? (
+            <form onSubmit={handleSetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                {error && <p className="text-sm text-red-500">{error}</p>}
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Setting Password...' : 'Set Password'}
+                </Button>
+              </div>
+            </form>
+          ) : (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
@@ -222,74 +226,80 @@ export default function SecurityPage() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
-        )}
+          )}
 
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-medium mb-4">Wallet Backup</h3>
-          <div className="space-y-4">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="w-full">
-                  <Shield className="h-4 w-4 mr-2" />
-                  {hasMnemonicPhrase ? 'Backup Recovery Phrase' : 'No Recovery Phrase Available'}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    {hasMnemonicPhrase ? 'Your Recovery Phrase' : 'No Recovery Phrase'}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="space-y-4">
-                    {hasMnemonicPhrase ? (
-                      <>
-                        <p className="text-yellow-600 dark:text-yellow-500">
-                          ⚠️ Never share your recovery phrase with anyone. Store it safely.
-                        </p>
-
-                        <Button onClick={handleBackupMnemonic} variant="outline" className="w-full">
-                          <Download className="h-4 w-4 mr-2" />
-                          Copy Recovery Phrase
-                        </Button>
-
-                        {showMnemonic && (
-                          <div className="mt-4 p-4 bg-muted rounded-md">
-                            <p className="text-sm font-mono break-all select-all">
-                              {retrieveMnemonic()}
-                            </p>
-                          </div>
-                        )}
-
-                        {mnemonicBackedUp && (
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-medium mb-4">Wallet Backup</h3>
+            <div className="space-y-4">
+              <WalletDetails
+                user={currentUser}
+                wallet={walletSolana}
+                onWalletDelete={() => setWalletSolana(null)}
+              />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <Shield className="h-4 w-4 mr-2" />
+                    {hasMnemonicPhrase ? 'Backup Recovery Phrase' : 'No Recovery Phrase Available'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {hasMnemonicPhrase ? 'Your Recovery Phrase' : 'No Recovery Phrase'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-4">
+                      {hasMnemonicPhrase ? (
+                        <>
+                          <p className="text-yellow-600 dark:text-yellow-500">
+                            ⚠️ Never share your recovery phrase with anyone. Store it safely.
+                          </p>
                           <Button
-                            onClick={handleDeleteMnemonic}
-                            variant="destructive"
+                            onClick={handleBackupMnemonic}
+                            variant="outline"
                             className="w-full"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Recovery Phrase
+                            <Download className="h-4 w-4 mr-2" />
+                            Copy Recovery Phrase
                           </Button>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-center space-y-4">
-                        <p>No recovery phrase is currently stored on this device.</p>
-                        <p className="text-sm text-muted-foreground">
-                          If you&apos;ve previously backed up your recovery phrase, keep it safe. If
-                          you need to restore your wallet, you&apos;ll need to use that phrase.
-                        </p>
-                      </div>
-                    )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Close</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                          {showMnemonic && (
+                            <div className="mt-4 p-4 bg-muted rounded-md">
+                              <p className="text-sm font-mono break-all select-all">
+                                {retrieveMnemonic()}
+                              </p>
+                            </div>
+                          )}
+                          {mnemonicBackedUp && (
+                            <Button
+                              onClick={handleDeleteMnemonic}
+                              variant="destructive"
+                              className="w-full"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Recovery Phrase
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center space-y-4">
+                          <p>No recovery phrase is currently stored on this device.</p>
+                          <p className="text-sm text-muted-foreground">
+                            If you&apos;ve previously backed up your recovery phrase, keep it safe.
+                            If you need to restore your wallet, you&apos;ll need to use that phrase.
+                          </p>
+                        </div>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Close</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
