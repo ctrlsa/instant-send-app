@@ -18,11 +18,11 @@ import { tokenList } from '@/utils/tokens'
 import { Button } from '@/components/ui/button'
 
 type SimpleTransaction = {
-  signature: string
-  date: string
-  amount: number
-  type: 'sent' | 'received'
-  currency: string
+  signature?: string
+  date?: string
+  amount?: number
+  type?: 'sent' | 'received'
+  currency?: string
 }
 
 export default function ActivityPage() {
@@ -30,7 +30,7 @@ export default function ActivityPage() {
   const [transactions, setTransactions] = useState<SimpleTransaction[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 3
+  const itemsPerPage = 4
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -46,17 +46,24 @@ export default function ActivityPage() {
             signatures.map(async (sig) => {
               const tx = await connection.getTransaction(sig.signature, { commitment: 'finalized' })
               const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
-              const amount = (tx?.meta?.postBalances?.[1] ?? 0) - (tx?.meta?.preBalances?.[1] ?? 0)
+              const preBalance = tx?.meta?.preBalances?.[0] ?? 0
+              const postBalance = tx?.meta?.postBalances?.[0] ?? 0
+              const fee = tx?.meta?.fee ?? 0
+              const amount = postBalance - preBalance // Exclude fee from the amount
+
               const type = amount > 0 ? 'received' : 'sent'
               return {
                 signature: sig.signature,
                 date,
-                amount: (Math.abs(amount) / 1e9).toFixed(2), // Convert lamports to SOL
+                amount: (Math.abs(amount) / 1e9).toFixed(4), // Convert lamports to SOL
                 type,
                 currency: 'SOL'
               }
             })
           )
+
+          // Filter out null values from the transactions
+          const filteredSolTransactions = solTransactions.filter((tx) => tx !== null)
 
           // Fetch USDC transactions
           const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubKey, {
@@ -78,6 +85,9 @@ export default function ActivityPage() {
                     const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
                     console.log('tx', tx)
                     const amount = tx?.meta?.postTokenBalances?.[1]?.uiTokenAmount?.uiAmount ?? 0
+                    if (Math.abs(amount).toFixed(2) == 0) {
+                      return null
+                    }
                     const type = amount > 0 ? 'received' : 'sent'
                     return {
                       signature: sig.signature,
@@ -97,11 +107,34 @@ export default function ActivityPage() {
           const flattenedUsdcTransactions = usdcTransactions.flat()
           // Combine SOL and USDC transactions
           setTransactions(
-            [...solTransactions, ...flattenedUsdcTransactions].map((tx) => ({
-              ...tx,
-              amount: Number(tx.amount),
-              type: tx.type as 'sent' | 'received'
-            }))
+            [...filteredSolTransactions, ...flattenedUsdcTransactions]
+              .filter(
+                (
+                  tx
+                ): tx is {
+                  signature: string
+                  date: string
+                  amount: string
+                  type: string
+                  currency: string
+                } => {
+                  if (!tx) return false
+                  return (
+                    typeof tx.signature === 'string' &&
+                    typeof tx.date === 'string' &&
+                    typeof tx.amount === 'string' &&
+                    typeof tx.type === 'string' &&
+                    typeof tx.currency === 'string'
+                  )
+                }
+              )
+              .map((tx) => ({
+                signature: tx?.signature,
+                date: tx?.date,
+                amount: Number(tx?.amount),
+                type: tx?.type as 'sent' | 'received',
+                currency: tx?.currency
+              }))
           )
         }
       } catch (error) {
