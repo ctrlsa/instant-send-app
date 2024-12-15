@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, Send, Wallet, Settings, Contact, Contact2, Receipt } from 'lucide-react'
+import { Send, Settings, Receipt, Clock9 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -12,7 +12,12 @@ export default function BottomNav() {
       <div className="flex justify-around items-center h-16">
         <NavItem href="/" icon={Receipt} label="Receive" isActive={pathname === '/'} />
         <NavItem href="/send" icon={Send} label="Send" isActive={pathname === '/send'} />
-        <NavItem href="/wallet" icon={Wallet} label="Wallet" isActive={pathname === '/wallet'} />
+        <NavItem
+          href="/activity"
+          icon={Clock9}
+          label="Activity"
+          isActive={pathname === '/activity'}
+        />
         <NavItem
           href="/settings"
           icon={Settings}
