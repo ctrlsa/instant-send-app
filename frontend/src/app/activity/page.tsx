@@ -10,7 +10,8 @@ import {
   ArrowUpIcon,
   ExternalLinkIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  Loader2
 } from 'lucide-react'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { tokenList } from '@/utils/tokens'
@@ -45,7 +46,7 @@ export default function ActivityPage() {
             signatures.map(async (sig) => {
               const tx = await connection.getTransaction(sig.signature, { commitment: 'finalized' })
               const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
-              const amount = (tx?.meta?.postBalances?.[0] ?? 0) - (tx?.meta?.preBalances?.[0] ?? 0)
+              const amount = (tx?.meta?.postBalances?.[1] ?? 0) - (tx?.meta?.preBalances?.[1] ?? 0)
               const type = amount > 0 ? 'received' : 'sent'
               return {
                 signature: sig.signature,
@@ -75,7 +76,8 @@ export default function ActivityPage() {
                       commitment: 'finalized'
                     })
                     const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
-                    const amount = tx?.meta?.postTokenBalances?.[0]?.uiTokenAmount?.uiAmount ?? 0
+                    console.log('tx', tx)
+                    const amount = tx?.meta?.postTokenBalances?.[1]?.uiTokenAmount?.uiAmount ?? 0
                     const type = amount > 0 ? 'received' : 'sent'
                     return {
                       signature: sig.signature,
@@ -132,8 +134,8 @@ export default function ActivityPage() {
     >
       <h1 className="text-xl font-bold mb-6 text-primary bg-clip-text">Activity</h1>
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+        <div className="flex justify-center items-center">
+          <Loader2 className="mr-2 h-166 w-16 animate-spin text-primary" />
         </div>
       ) : currentTransactions.length > 0 ? (
         <>
@@ -169,7 +171,7 @@ export default function ActivityPage() {
                 </div>
                 <div className="flex flex-col items-end">
                   <div
-                    className={`text-xl font-bold mb-1 ${
+                    className={`font-bold mb-1 ${
                       txn.type === 'received'
                         ? 'text-green-500 dark:text-green-400'
                         : 'text-red-500 dark:text-red-400'
