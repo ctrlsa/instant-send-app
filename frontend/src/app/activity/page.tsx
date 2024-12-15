@@ -37,6 +37,7 @@ export default function ActivityPage() {
       try {
         if (walletSolana && walletSolana.publicKey) {
           setLoading(true)
+          //   const connection = new Connection('https://rpc.ankr.com/solana_devnet')
           const connection = new Connection('https://api.devnet.solana.com')
           const pubKey = new PublicKey(walletSolana.publicKey)
 
@@ -83,6 +84,7 @@ export default function ActivityPage() {
                       commitment: 'finalized'
                     })
                     const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
+                    console.log(tx)
                     const amount = tx?.meta?.postTokenBalances?.[1]?.uiTokenAmount?.uiAmount ?? 0
                     if (Math.abs(amount).toFixed(2) === '0.00') {
                       return null

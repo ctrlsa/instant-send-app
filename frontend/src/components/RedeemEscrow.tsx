@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useWallet } from '@/contexts/WalletContext'
-import { Connection } from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { redeemEscrow } from '@/utils/solanaUtils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,6 +24,13 @@ export const RedeemEscrow = () => {
     setLoading(true)
     try {
       const urlObj = new URL(inputUrl)
+      // check if wallet has enough balance to redeem
+      const balance = await connection.getBalance(new PublicKey(walletSolana.publicKey))
+      console.log('balance', balance)
+      if (balance == 0) {
+        toast.error('Insufficient balance. Please, top up')
+        return
+      }
       const [secret, sender, token] = urlObj.searchParams.get('startapp')?.split('__') || []
       const isSol = token === 'SOL'
 
