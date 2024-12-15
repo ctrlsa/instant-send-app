@@ -16,10 +16,13 @@ import { Connection, PublicKey } from '@solana/web3.js'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Wallet } from '@/utils/wallet'
+import WalletGenerator from '@/components/WalletGenerator'
 
 export default function Home() {
   const initData = useInitData()
   const viewport = useViewport()
+  const { setWalletSolana } = useWallet()
 
   const connection = new Connection('https://api.devnet.solana.com')
 
@@ -145,24 +148,20 @@ export default function Home() {
         {/* Wallet Management Card */}
         {!walletSolana && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mt-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden shadow-lg border flex-grow"
           >
-            <Card>
-              <CardContent className="flex justify-between items-center py-4">
-                <div className="flex items-center space-x-2">
-                  <WalletIcon className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Manage Wallet</span>
-                </div>
-                <Link href="/wallet">
-                  <Button variant="outline">
-                    {walletSolana ? 'View Details' : 'Create Wallet'}
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+            <CardContent className="p-6">
+              <div className="grid gap-8 md:grid-cols-2">
+                <WalletGenerator
+                  user={currentUser}
+                  wallet={walletSolana}
+                  onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+                />
+              </div>
+            </CardContent>
           </motion.div>
         )}
       </div>

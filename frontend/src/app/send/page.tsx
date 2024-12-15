@@ -11,11 +11,13 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { contactsApi } from '@/services/api'
 import { Contact } from '@/types'
+import { Wallet } from '@/utils/wallet'
+import WalletGenerator from '@/components/WalletGenerator'
 
 const SendPage = () => {
   const initData = useInitData()
   const [contacts, setContacts] = useState<Contact[]>([])
-  const { walletSolana } = useWallet()
+  const { walletSolana, setWalletSolana } = useWallet()
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined
@@ -42,7 +44,7 @@ const SendPage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-[70vh] flex flex-col justify-end"
+      className="h-[70vh] flex flex-col justify-end p-2 md:p-6"
     >
       {walletSolana ? (
         <motion.div
@@ -54,17 +56,22 @@ const SendPage = () => {
           <TokenBalances contacts={contacts} defaultToken="SOL" />
         </motion.div>
       ) : (
-        <Card className="flex flex-col justify-end">
-          <CardContent className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <WalletIcon className="h-5 w-5 text-primary" />
-              <span className="font-medium">Manage Wallet</span>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden shadow-lg border flex-grow"
+        >
+          <CardContent className="p-6">
+            <div className="grid gap-8 md:grid-cols-2">
+              <WalletGenerator
+                user={currentUser}
+                wallet={walletSolana}
+                onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+              />
             </div>
-            <Link href="/wallet">
-              <Button variant="outline">{walletSolana ? 'View Details' : 'Create Wallet'}</Button>
-            </Link>
           </CardContent>
-        </Card>
+        </motion.div>
       )}
     </motion.div>
   )
