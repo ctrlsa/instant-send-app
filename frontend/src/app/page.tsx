@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { postEvent, useInitData, useViewport } from '@telegram-apps/sdk-react'
-import { Copy, Loader2, QrCode, Share } from 'lucide-react'
+import { Copy, Loader2, QrCode, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 import QRCode from 'qrcode'
 import { useWallet } from '@/contexts/WalletContext'
@@ -193,13 +193,34 @@ export default function Home() {
                 </div>
                 <div className="flex space-x-2">
                   <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full bg-current-800"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator
+                          .share({
+                            title: 'Share Wallet Address',
+                            text: 'Check out this wallet address: ' + walletSolana.publicKey
+                          })
+                          .then(() => console.log('Successful share'))
+                          .catch((error) => console.error('Error sharing', error))
+                      } else {
+                        toast.error('Sharing not supported on this browser')
+                      }
+                    }}
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                  <Button
                     variant="secondary"
                     size="icon"
                     className="rounded-full"
                     onClick={() => handleQrClick(walletSolana.publicKey)}
                   >
-                    <Share className="h-5 w-5" />
+                    <QrCode className="h-5 w-5" />
                   </Button>
+
                   <Button
                     variant="secondary"
                     size="icon"
