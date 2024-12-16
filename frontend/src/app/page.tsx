@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { postEvent, useInitData, useViewport } from '@telegram-apps/sdk-react'
-import { Loader2, QrCode, Share } from 'lucide-react'
+import { Copy, Loader2, QrCode, Share } from 'lucide-react'
 import { toast } from 'sonner'
 import QRCode from 'qrcode'
 import { useWallet } from '@/contexts/WalletContext'
@@ -198,7 +198,7 @@ export default function Home() {
                     className="rounded-full"
                     onClick={() => handleQrClick(walletSolana.publicKey)}
                   >
-                    <QrCode className="h-5 w-5" />
+                    <Share className="h-5 w-5" />
                   </Button>
                   <Button
                     variant="secondary"
@@ -206,7 +206,7 @@ export default function Home() {
                     className="rounded-full"
                     onClick={() => copyToClipboard(walletSolana.publicKey)}
                   >
-                    <Share className="h-5 w-5" />
+                    <Copy className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
