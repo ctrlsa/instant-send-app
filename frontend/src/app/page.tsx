@@ -3,9 +3,9 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { postEvent, useInitData, useViewport } from '@telegram-apps/sdk-react'
-import { Loader2, WalletIcon } from 'lucide-react'
+import { Loader2, QrCode, Share } from 'lucide-react'
 import { toast } from 'sonner'
-
+import QRCode from 'qrcode'
 import { useWallet } from '@/contexts/WalletContext'
 import { contactsApi } from '@/services/api'
 import { Contact } from '@/types'
@@ -13,11 +13,15 @@ import { RedeemEscrow } from '@/components/RedeemEscrow'
 import { tokenList } from '@/utils/tokens'
 import { redeemEscrow } from '@/utils/solanaUtils'
 import { Connection, PublicKey } from '@solana/web3.js'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import { Wallet } from '@/utils/wallet'
 import WalletGenerator from '@/components/WalletGenerator'
+import Image from 'next/image'
+
+const truncateAddress = (address: string) => {
+  if (!address) return ''
+  return `${address.slice(0, 6)}...${address.slice(-6)}`
+}
 
 export default function Home() {
   const initData = useInitData()
@@ -31,12 +35,16 @@ export default function Home() {
   const [isFetchingContacts, setIsFetchingContacts] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isRedeeming, setIsRedeeming] = useState(false)
+  const [showWalletInfo, setShowWalletInfo] = useState(false)
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false)
+  const [selectedQrCode, setSelectedQrCode] = useState<any | null>(null)
 
   const currentUser = useMemo(() => {
     if (!initData?.user) return undefined
     const { id, username, firstName, lastName } = initData.user
     return { id: id.toString(), username, name: `${firstName} ${lastName}` }
   }, [initData])
+
   useEffect(() => {
     postEvent('web_app_setup_back_button', {
       is_visible: true
@@ -63,13 +71,11 @@ export default function Home() {
           setContacts(res)
 
           if (isRefreshAction) {
-            // toast.success('Contacts updated successfully')
             console.log('Contacts updated successfully')
           }
         }
       } catch (e) {
         console.error(e)
-        // toast.error('Failed to fetch contacts')
       } finally {
         setIsFetchingContacts(false)
         setIsRefreshing(false)
@@ -92,7 +98,6 @@ export default function Home() {
     }
     if (walletSolana) {
       const balance = await connection.getBalance(new PublicKey(walletSolana.publicKey))
-      // check if balance is greater than 0
       if (balance === 0) {
         toast.error('Insufficient balance. Please, top up')
         return
@@ -127,41 +132,123 @@ export default function Home() {
     }
   }, [])
 
+  const copyToClipboard = (text: string) => {
+    try {
+      navigator.clipboard.writeText(text)
+      toast.success('Copied to clipboard')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to copy to clipboard')
+    }
+  }
+
+  const handleQrClick = async (publicKey: string) => {
+    const qr = await generateQR(publicKey)
+    setSelectedQrCode(qr)
+    setIsQrModalOpen(true)
+    return qr
+  }
+
+  const closeModal = () => {
+    setIsQrModalOpen(false)
+    setSelectedQrCode(null)
+  }
+  const generateQR = async (text: string) => {
+    try {
+      const qr = await QRCode.toDataURL(text)
+      return qr
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col justify-end h-[70vh]" // Adjust the pb value as needed to account for the footer
+      className="flex flex-col justify-end h-[70vh] p-4" // Adjust the pb value as needed to account for the footer
     >
       {isRedeeming && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
           <Loader2 className="h-8 w-8 animate-spin" />
           <span className="ml-2">Receiving tokens...</span>
         </div>
       )}
 
-      <div>
-        {/* Receive or Redeem Escrow */}
-        <div className="mb-4">{walletSolana && <RedeemEscrow />}</div>
+      {walletSolana && (
+        <div className="space-y-3">
+          {tokenList.map((token) => (
+            <div
+              key={token.symbol}
+              className="bg-secondary rounded-xl p-4 dark:text-white text-black"
+            >
+              <div className="flex items-center space-x-3">
+                {token.icon}
+                <div className="flex-1">
+                  <h3 className="font-medium">{token.symbol}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {truncateAddress(walletSolana.publicKey)}
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full"
+                    onClick={() => handleQrClick(walletSolana.publicKey)}
+                  >
+                    <QrCode className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full"
+                    onClick={() => copyToClipboard(walletSolana.publicKey)}
+                  >
+                    <Share className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {/* Wallet Management Card */}
+      {isQrModalOpen && selectedQrCode && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={closeModal}
+        >
+          <div className=" p-4 rounded-lg">
+            <div className="flex items-center justify-center">
+              <Image
+                src={selectedQrCode}
+                alt="QR Code"
+                width={200}
+                height={200}
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 space-y-4">
+        {walletSolana && <RedeemEscrow />}
+
         {!walletSolana && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden shadow-lg border flex-grow"
+            className="bg-zinc-800 rounded-xl p-6"
           >
-            <CardContent className="p-6">
-              <div className="grid gap-8 md:grid-cols-2">
-                <WalletGenerator
-                  user={currentUser}
-                  wallet={walletSolana}
-                  onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
-                />
-              </div>
-            </CardContent>
+            <WalletGenerator
+              user={currentUser}
+              wallet={walletSolana}
+              onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+            />
           </motion.div>
         )}
       </div>
