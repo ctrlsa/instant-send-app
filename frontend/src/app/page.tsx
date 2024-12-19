@@ -4,6 +4,8 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { postEvent, useInitData, useViewport } from '@telegram-apps/sdk-react'
 import { Copy, Loader2, QrCode, Share2 } from 'lucide-react'
+import { initUtils } from '@telegram-apps/sdk'
+
 import { toast } from 'sonner'
 import QRCode from 'qrcode'
 import { useWallet } from '@/contexts/WalletContext'
@@ -27,6 +29,7 @@ export default function Home() {
   const initData = useInitData()
   const viewport = useViewport()
   const { setWalletSolana } = useWallet()
+  const utils = initUtils()
 
   const connection = new Connection('https://api.devnet.solana.com')
 
@@ -197,16 +200,17 @@ export default function Home() {
                     size="sm"
                     className="rounded-full bg-current-800"
                     onClick={() => {
-                      if (navigator.share) {
-                        navigator
-                          .share({
-                            title: 'Share Wallet Address',
-                            text: 'Check out this wallet address: ' + walletSolana.publicKey
-                          })
-                          .then(() => console.log('Successful share'))
-                          .catch((error) => console.error('Error sharing', error))
+                      let link
+                      if (process.env.NODE_ENV === 'development') {
+                        link = `https://t.me/InstantSendTestBot/InstantSendLocalTest`
                       } else {
-                        toast.error('Sharing not supported on this browser')
+                        link = `https://t.me/InstantSendAppBot/InstantSendApp`
+                      }
+                      if (link) {
+                        utils.shareURL(
+                          link,
+                          'Check out this wallet address on CTRL: ' + walletSolana.publicKey
+                        )
                       }
                     }}
                   >
