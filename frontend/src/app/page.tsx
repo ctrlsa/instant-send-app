@@ -138,7 +138,7 @@ export default function Home() {
   const copyToClipboard = (text: string) => {
     try {
       navigator.clipboard.writeText(text)
-      toast.success('Copied to clipboard')
+      toast.success('Copied')
     } catch (error) {
       console.error(error)
       toast.error('Failed to copy to clipboard')

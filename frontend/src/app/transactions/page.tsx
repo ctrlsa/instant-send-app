@@ -136,7 +136,7 @@ const columns: ColumnDef<SolanaTransaction>[] = [
             <DropdownMenuItem
               onClick={() => {
                 navigator.clipboard.writeText(transaction.signature)
-                toast.success('Signature copied to clipboard')
+                toast.success('Copied')
               }}
             >
               Copy signature

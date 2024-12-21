@@ -43,7 +43,7 @@ const WalletGenerator: React.FC<WalletGeneratorProps> = ({ wallet, onWalletCreat
 
   const copyToClipboard = (content: string) => {
     navigator.clipboard.writeText(content)
-    toast.success('Copied to clipboard!')
+    toast.success('Copied')
   }
 
   const handleGenerateWallet = async () => {

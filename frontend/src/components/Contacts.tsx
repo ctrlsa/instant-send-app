@@ -78,7 +78,7 @@ export default function Contacts({
   const copyUsername = useCallback((username: string) => {
     if (username) {
       navigator.clipboard.writeText(username)
-      toast.success('Username copied to clipboard')
+      toast.success('Copied')
     } else {
       toast.error('No username found, invite the user to InstantSendAppBot to get their username')
     }

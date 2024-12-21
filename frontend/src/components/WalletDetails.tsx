@@ -56,7 +56,7 @@ export default function WalletDetails({ wallet, onWalletDelete, user }: WalletDe
   const copyToClipboard = async (content: string, isPublic: boolean) => {
     try {
       await navigator.clipboard.writeText(content)
-      toast.success('Copied to clipboard!')
+      toast.success('Copied')
       setState((prev) => ({ ...prev, [isPublic ? 'copiedPublic' : 'copiedPrivate']: true }))
       setTimeout(
         () =>
