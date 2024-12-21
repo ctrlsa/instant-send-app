@@ -40,13 +40,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
           >
             <WalletProvider>
               <Toaster
+                className="mt-16 text-sm"
                 position="top-center"
                 icons={{
-                  success: <CheckCircleIcon className="text-green-500" />,
-                  info: <InfoIcon className="text-blue-500" />,
-                  warning: <AlertTriangleIcon className="text-yellow-500" />,
-                  error: <AlertCircleIcon className="text-red-500" />,
-                  loading: <Loader2Icon className="text-blue-500" />
+                  success: <CheckCircleIcon className="text-green-500 h-4 w-4" />,
+                  info: <InfoIcon className="text-blue-500 h-4 w-4" />,
+                  warning: <AlertTriangleIcon className="text-yellow-500 h-4 w-4" />,
+                  error: <AlertCircleIcon className="text-red-500 h-4 w-4" />,
+                  loading: <Loader2Icon className="text-blue-500 h-4 w-4" />
                 }}
               />{' '}
               <Root>
