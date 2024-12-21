@@ -164,9 +164,8 @@ export default function ActivityPage() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="p-3 md:p-4 max-w-4xl mx-auto"
+      className="flex flex-col justify-end p-3 md:p-4 max-w-4xl mx-auto"
     >
-      <h1 className="text-xl font-bold mb-6 text-primary bg-clip-text">Activity</h1>
       {loading ? (
         <div className="flex justify-center items-center">
           <Loader2 className="mr-2 h-166 w-16 animate-spin text-primary" />
@@ -251,10 +250,7 @@ export default function ActivityPage() {
         </>
       ) : (
         <div className="text-center text-muted-foreground mt-8 p-6 bg-card rounded-xl border border-primary/10">
-          <p className="text-lg font-semibold mb-2">No transactions found</p>
-          <p className="text-sm">
-            Your transaction history will appear here once you start using your wallet.
-          </p>
+          <p className="text-lg font-semibold mb-2">No transactions yet</p>
         </div>
       )}
     </motion.div>

@@ -184,7 +184,8 @@ export default function Home() {
           {tokenList.map((token) => (
             <div
               key={token.symbol}
-              className="bg-secondary rounded-xl p-4 dark:text-white text-black"
+              className="bg-secondary rounded-xl p-4 dark:text-white text-black cursor-pointer"
+              onClick={() => copyToClipboard(walletSolana.publicKey)}
             >
               <div className="flex items-center space-x-3">
                 {token.icon}
@@ -199,7 +200,8 @@ export default function Home() {
                     variant="ghost"
                     size="sm"
                     className="rounded-full bg-current-800"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       let link
                       if (process.env.NODE_ENV === 'development') {
                         link = `https://t.me/InstantSendTestBot/InstantSendLocalTest`
@@ -220,7 +222,10 @@ export default function Home() {
                     variant="secondary"
                     size="icon"
                     className="rounded-full"
-                    onClick={() => handleQrClick(walletSolana.publicKey)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleQrClick(walletSolana.publicKey)
+                    }}
                   >
                     <QrCode className="h-5 w-5" />
                   </Button>
@@ -229,7 +234,10 @@ export default function Home() {
                     variant="secondary"
                     size="icon"
                     className="rounded-full"
-                    onClick={() => copyToClipboard(walletSolana.publicKey)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      copyToClipboard(walletSolana.publicKey)
+                    }}
                   >
                     <Copy className="h-5 w-5" />
                   </Button>
