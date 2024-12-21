@@ -165,6 +165,23 @@ export default function Home() {
     }
   }
 
+  const handleShare = (publicKey: string) => {
+    let link
+    if (process.env.NODE_ENV === 'development') {
+      link = `https://t.me/InstantSendTestBot/InstantSendLocalTest`
+    } else {
+      link = `https://t.me/InstantSendAppBot/InstantSendApp`
+    }
+
+    const message = `Solana address of [${currentUser?.username}](https://t.me/${currentUser?.username}) from [CTRL wallet](${link}):\n
+    \`\`\`
+    ${publicKey}
+    \`\`\`
+    `
+
+    utils.shareURL('', message)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -202,18 +219,7 @@ export default function Home() {
                     className="rounded-full bg-current-800"
                     onClick={(e) => {
                       e.stopPropagation()
-                      let link
-                      if (process.env.NODE_ENV === 'development') {
-                        link = `https://t.me/InstantSendTestBot/InstantSendLocalTest`
-                      } else {
-                        link = `https://t.me/InstantSendAppBot/InstantSendApp`
-                      }
-                      if (link) {
-                        utils.shareURL(
-                          link,
-                          'Check out this wallet address on CTRL: ' + walletSolana.publicKey
-                        )
-                      }
+                      handleShare(walletSolana.publicKey)
                     }}
                   >
                     <Share2 className="h-5 w-5" />
