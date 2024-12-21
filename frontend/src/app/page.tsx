@@ -174,9 +174,7 @@ export default function Home() {
     }
 
     const message = `Solana address of [${currentUser?.username}](https://t.me/${currentUser?.username}) from [CTRL wallet](${link}):\n
-    \`\`\`
-    ${publicKey}
-    \`\`\`
+    \`${publicKey}\`
     `
 
     utils.shareURL('', message)
