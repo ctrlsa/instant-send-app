@@ -53,7 +53,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
               <Root>
                 <Navbar />
                 <Auth>
-                  <main className="pt-16 pb-16">
+                  <main className="">
                     <EventProvider>
                       <Root>{children}</Root>
                     </EventProvider>

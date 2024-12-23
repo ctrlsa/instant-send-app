@@ -44,14 +44,14 @@ const SendPage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-[70vh] flex flex-col justify-end p-2 md:p-6"
+      className="min-h-screen flex flex-col justify-end p-2 md:p-6"
     >
       {walletSolana ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="p-4 flex flex-col justify-end items-center flex-grow"
+          className="p-4 w-full flex flex-col justify-center items-center flex-grow"
         >
           <TokenBalances contacts={contacts} defaultToken="SOL" />
         </motion.div>

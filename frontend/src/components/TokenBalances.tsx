@@ -194,59 +194,55 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
         ) : (
           <div className="space-y-4">
             {tokens.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {tokens.map((token) => (
-                  <motion.div
-                    key={token.symbol}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedToken(token)}
-                  >
-                    <Card
-                      className={cn(
-                        'transition-all duration-200',
-                        selectedToken?.symbol === token.symbol && 'border-2 border-primary'
-                      )}
+              <div className="space-y-3">
+                {tokens
+                  .filter((token) => ['SOL', 'USDC'].includes(token.symbol))
+                  .map((token) => (
+                    <motion.div
+                      key={token.symbol}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedToken(token)}
                     >
-                      <CardContent className="flex flex-col items-center justify-center p-4 h-32">
-                        <div className="mb-2">{token.icon}</div>
-                        <h3 className="font-bold">{token.symbol}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {formatBalance(token.balance ? token.balance : 0, token)}
-                        </p>
-                        {token.usdPrice && token.balance ? (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatUSD(token.balance * token.usdPrice)}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-muted-foreground mt-1">{formatUSD(0)}</p>
+                      <div
+                        className={cn(
+                          'flex items-center p-4 rounded-lg border cursor-pointer transition-all',
+                          'hover:bg-accent hover:border-accent',
+                          selectedToken?.symbol === token.symbol && 'border-2 border-primary'
                         )}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                      >
+                        <div className="flex items-center flex-1 gap-3">
+                          <div className="w-8 h-8">{token.icon}</div>
+                          <div className="flex flex-col">
+                            <div className="font-medium">{token.symbol}</div>
+                            <div className="text-xs text-muted-foreground">Solana</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">
+                            {formatBalance(token.balance || 0, token)}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">No tokens found</div>
             )}
 
             {selectedToken && (
-              <div className="space-y-4">
+              <div className="space-y-4 pt-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
-                  <div className="flex flex-row justify-between items-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => updateTokenBalances(true)}
-                      disabled={loading || isRefreshing}
-                    >
-                      <RefreshCcw
-                        className={cn('h-4 w-4', (loading || isRefreshing) && 'animate-spin')}
-                      />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => updateTokenBalances(true)}
+                    disabled={loading}
+                  >
+                    <RefreshCcw className={cn('h-4 w-4', loading && 'animate-spin')} />
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
@@ -261,18 +257,9 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                     />
                   </div>
 
-                  <Button className="w-full py-4" onClick={handleSend} disabled={isCreatingEscrow}>
-                    {isCreatingEscrow ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-5 w-5 mr-2" />
-                        Send via Telegram
-                      </>
-                    )}
+                  <Button className="w-full py-4" onClick={handleSend}>
+                    <Send className="h-5 w-5 mr-2" />
+                    Send via Telegram
                   </Button>
                   {escrowSecret && escrowTx && (
                     <Dialog open={showShareModal} onOpenChange={setShowShareModal}>

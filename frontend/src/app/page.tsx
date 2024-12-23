@@ -183,7 +183,7 @@ export default function Home() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col justify-end h-[70vh] p-4" // Adjust the pb value as needed to account for the footer
+      className="flex flex-col justify-center min-h-screen p-4" // Adjust the pb value as needed to account for the footer
     >
       {isRedeeming && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">

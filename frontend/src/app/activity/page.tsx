@@ -164,7 +164,7 @@ export default function ActivityPage() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col justify-end p-3 md:p-4 max-w-4xl mx-auto"
+      className="flex flex-col justify-center min-h-screen p-3 md:p-4 max-w-4xl mx-auto"
     >
       {loading ? (
         <div className="flex justify-center items-center">
