@@ -21,7 +21,7 @@ export function createBot(token: string) {
         "Open wallet",
         process.env.WEBAPP_URL
       );
-      await ctx.reply("Press the button below to open wallet", {
+      await ctx.reply('Press "Open wallet" button below ↙️', {
         reply_markup: keyboard,
       });
     }
