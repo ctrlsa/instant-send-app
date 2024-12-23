@@ -173,11 +173,9 @@ export default function Home() {
       link = `https://t.me/InstantSendAppBot/InstantSendApp`
     }
 
-    const message = `Solana address of [${currentUser?.username}](https://t.me/${currentUser?.username}) from [CTRL wallet](${link}):\n
-    \`${publicKey}\`
-    `
+    const message = `Solana address of [${currentUser?.username}](tg://user?id=${currentUser?.id}) from [CTRL wallet](${link}):\n\n\`${publicKey}\``
 
-    utils.shareURL('', message)
+    utils.shareURL(link, message)
   }
 
   return (
