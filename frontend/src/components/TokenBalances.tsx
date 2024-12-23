@@ -237,14 +237,14 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
               <div className="space-y-4 pt-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => updateTokenBalances(true)}
                     disabled={loading}
                   >
                     <RefreshCcw className={cn('h-4 w-4', loading && 'animate-spin')} />
-                  </Button>
+                  </Button> */}
                 </div>
 
                 <div className="space-y-4">
