@@ -203,7 +203,12 @@ export default function Home() {
               <div className="flex items-center space-x-3">
                 {token.icon}
                 <div className="flex-1">
-                  <h3 className="font-medium">{token.symbol}</h3>
+                  <div className="flex items-center space-x-4">
+                    <h3 className="font-medium">{token.symbol}</h3>
+                    <span className="bg-gray-600 rounded-3xl text-[9px] text-muted-foreground px-1 py-0.5 ">
+                      Solana
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {truncateAddress(walletSolana.publicKey)}
                   </p>

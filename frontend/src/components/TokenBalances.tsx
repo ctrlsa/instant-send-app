@@ -213,9 +213,11 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                       >
                         <div className="flex items-center flex-1 gap-3">
                           <div className="w-8 h-8">{token.icon}</div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-row space-x-4 justify-center items-center">
                             <div className="font-medium">{token.symbol}</div>
-                            <div className="text-xs text-muted-foreground">Solana</div>
+                            <span className="flex items-center bg-gray-600 rounded-3xl text-[9px] text-muted-foreground px-1">
+                              Solana
+                            </span>{' '}
                           </div>
                         </div>
                         <div className="text-right">
