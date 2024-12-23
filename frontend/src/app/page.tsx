@@ -197,7 +197,7 @@ export default function Home() {
           {tokenList.map((token) => (
             <div
               key={token.symbol}
-              className="bg-secondary rounded-xl p-4 dark:text-white text-black cursor-pointer"
+              className="border rounded-xl p-4 dark:text-white text-black cursor-pointer"
               onClick={() => copyToClipboard(walletSolana.publicKey)}
             >
               <div className="flex items-center space-x-3">
@@ -205,9 +205,7 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="flex items-center space-x-4">
                     <h3 className="font-medium">{token.symbol}</h3>
-                    <span className="bg-gray-600 rounded-3xl text-[9px] text-muted-foreground px-1 py-0.5 ">
-                      Solana
-                    </span>
+                    <span className="bg-secondary rounded-3xl text-[9px] px-1">Solana</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {truncateAddress(walletSolana.publicKey)}

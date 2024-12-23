@@ -207,7 +207,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                       <div
                         className={cn(
                           'flex items-center p-4 rounded-lg border cursor-pointer transition-all',
-                          'hover:bg-accent hover:border-accent',
+                          'hover:border-primary',
                           selectedToken?.symbol === token.symbol && 'border-2 border-primary'
                         )}
                       >
@@ -215,7 +215,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                           <div className="w-8 h-8">{token.icon}</div>
                           <div className="flex flex-row space-x-4 justify-center items-center">
                             <div className="font-medium">{token.symbol}</div>
-                            <span className="flex items-center bg-gray-600 rounded-3xl text-[9px] text-muted-foreground px-1">
+                            <span className="flex items-center bg-secondary rounded-3xl text-[9px] px-1">
                               Solana
                             </span>{' '}
                           </div>
