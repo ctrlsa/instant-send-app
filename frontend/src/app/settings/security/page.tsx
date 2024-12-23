@@ -144,7 +144,7 @@ export default function SecurityPage() {
   }
 
   return (
-    <div className="h-[70vh] overflow-auto p-4">
+    <div className="min-h-screen overflow mt-32 mb-32 p-4">
       <Card>
         <CardHeader>
           <CardTitle>Security Settings</CardTitle>
