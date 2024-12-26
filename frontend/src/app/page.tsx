@@ -280,7 +280,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-zinc-800 rounded-xl p-6"
+            className=" border rounded-xl p-4"
           >
             <WalletGenerator
               user={currentUser}
