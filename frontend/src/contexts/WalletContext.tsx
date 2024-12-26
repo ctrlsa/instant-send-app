@@ -2,34 +2,45 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { Wallet } from '@/utils/wallet'
+import { useInitData } from '@telegram-apps/sdk-react'
 
 interface WalletContextType {
   walletSolana: Wallet | null
   setWalletSolana: (wallet: Wallet | null) => void
+  userId: string | null
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined)
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  let userId: string | null = null
+  try {
+    const initData = useInitData()
+    userId = initData?.user?.id.toString() || null
+  } catch (error) {
+    console.warn('Telegram SDK not available, wallet will use default storage')
+  }
+
+  const walletKey = userId ? `Solana_wallet_${userId}` : 'Solana_wallet'
+
   const [walletSolana, setWalletSolana] = useState<Wallet | null>(() =>
-    typeof window !== 'undefined'
-      ? JSON.parse(localStorage.getItem('Solana_wallet') || 'null')
-      : null
+    typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(walletKey) || 'null') : null
   )
 
   useEffect(() => {
     if (walletSolana) {
-      localStorage.setItem('Solana_wallet', JSON.stringify(walletSolana))
+      localStorage.setItem(walletKey, JSON.stringify(walletSolana))
     } else {
-      localStorage.removeItem('Solana_wallet')
+      localStorage.removeItem(walletKey)
     }
-  }, [walletSolana])
+  }, [walletSolana, walletKey])
 
   return (
     <WalletContext.Provider
       value={{
         walletSolana,
-        setWalletSolana
+        setWalletSolana,
+        userId
       }}
     >
       {children}

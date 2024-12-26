@@ -304,8 +304,8 @@ export const withdrawToExternalWallet = async (
   return sendTokens(connection, wallet, selectedToken, sendAmount, recipient)
 }
 
-export const retrieveMnemonic = (): string => {
-  const wallet = localStorage.getItem('Solana_wallet')
+export const retrieveMnemonic = (userId: string): string => {
+  const wallet = localStorage.getItem(`Solana_wallet_${userId}`)
   if (!wallet) {
     throw new Error('No wallet found')
   }
@@ -314,24 +314,25 @@ export const retrieveMnemonic = (): string => {
   return mnemonic
 }
 
-export const deleteMnemonic = (): void => {
-  const wallet = localStorage.getItem('Solana_wallet')
+export const deleteMnemonic = (userId: string): void => {
+  const wallet = localStorage.getItem(`Solana_wallet_${userId}`)
   if (!wallet) {
     throw new Error('No wallet found')
   }
   const walletParsed = JSON.parse(wallet)
   walletParsed.mnemonic = ''
-  localStorage.setItem('Solana_wallet', JSON.stringify(walletParsed))
+  localStorage.setItem(`Solana_wallet_${userId}`, JSON.stringify(walletParsed))
 }
 
-export const hasMnemonic = (): boolean => {
-  const wallet = localStorage.getItem('Solana_wallet')
+export const hasMnemonic = (userId: string): boolean => {
+  const wallet = localStorage.getItem(`Solana_wallet_${userId}`)
   if (!wallet) {
     return false
   }
   const walletParsed = JSON.parse(wallet)
   return walletParsed.mnemonic !== ''
 }
+
 export async function initializeEscrow(
   connection: Connection,
   senderWallet: WalletType,

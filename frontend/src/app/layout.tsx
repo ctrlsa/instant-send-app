@@ -31,40 +31,37 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <body>
-        <CSPostHogProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <WalletProvider>
-              <Toaster
-                className="mt-16 text-sm"
-                position="top-center"
-                icons={{
-                  success: <CheckCircleIcon className="text-green-500 h-4 w-4" />,
-                  info: <InfoIcon className="text-blue-500 h-4 w-4" />,
-                  warning: <AlertTriangleIcon className="text-yellow-500 h-4 w-4" />,
-                  error: <AlertCircleIcon className="text-red-500 h-4 w-4" />,
-                  loading: <Loader2Icon className="text-blue-500 h-4 w-4" />
-                }}
-              />{' '}
-              <Root>
+        <Root>
+          <CSPostHogProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <WalletProvider>
+                <Toaster
+                  className="mt-16 text-sm"
+                  position="top-center"
+                  icons={{
+                    success: <CheckCircleIcon className="text-green-500 h-4 w-4" />,
+                    info: <InfoIcon className="text-blue-500 h-4 w-4" />,
+                    warning: <AlertTriangleIcon className="text-yellow-500 h-4 w-4" />,
+                    error: <AlertCircleIcon className="text-red-500 h-4 w-4" />,
+                    loading: <Loader2Icon className="text-blue-500 h-4 w-4" />
+                  }}
+                />
                 <Navbar />
                 <Auth>
                   <main className="">
-                    <EventProvider>
-                      <Root>{children}</Root>
-                    </EventProvider>
+                    <EventProvider>{children}</EventProvider>
                   </main>
                 </Auth>
-
                 <BottomNav />
-              </Root>
-            </WalletProvider>
-          </ThemeProvider>
-        </CSPostHogProvider>
+              </WalletProvider>
+            </ThemeProvider>
+          </CSPostHogProvider>
+        </Root>
       </body>
     </html>
   )

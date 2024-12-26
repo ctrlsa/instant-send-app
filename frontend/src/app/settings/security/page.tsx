@@ -26,7 +26,7 @@ import { retrieveMnemonic, deleteMnemonic, hasMnemonic } from '@/utils/solanaUti
 
 export default function SecurityPage() {
   const [password, setPassword] = useState('')
-  const { walletSolana, setWalletSolana } = useWallet()
+  const { walletSolana, setWalletSolana, userId } = useWallet()
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [hasPassword, setHasPassword] = useState(false)
@@ -46,16 +46,18 @@ export default function SecurityPage() {
   }, [initData])
 
   useEffect(() => {
-    if (currentUser) {
-      checkPasswordExists(currentUser.id).then(setHasPassword)
+    if (userId) {
+      checkPasswordExists(userId).then(setHasPassword)
     }
-  }, [currentUser])
+  }, [userId])
 
   useEffect(() => {
-    const exists = hasMnemonic()
-    setHasMnemonicPhrase(exists)
-    setMnemonicBackedUp(exists)
-  }, [])
+    if (userId) {
+      const exists = hasMnemonic(userId)
+      setHasMnemonicPhrase(exists)
+      setMnemonicBackedUp(exists)
+    }
+  }, [userId])
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,8 +115,9 @@ export default function SecurityPage() {
   }
 
   const handleBackupMnemonic = async () => {
+    if (!userId) return
     try {
-      const mnemonic = retrieveMnemonic()
+      const mnemonic = retrieveMnemonic(userId)
 
       try {
         await navigator.clipboard.writeText(mnemonic)
@@ -132,8 +135,9 @@ export default function SecurityPage() {
   }
 
   const handleDeleteMnemonic = () => {
+    if (!userId) return
     try {
-      deleteMnemonic()
+      deleteMnemonic(userId)
       setMnemonicBackedUp(false)
       setShowMnemonic(false)
       setHasMnemonicPhrase(false)
@@ -265,7 +269,7 @@ export default function SecurityPage() {
                           {showMnemonic && (
                             <div className="mt-4 p-4 bg-muted rounded-md">
                               <p className="text-sm font-mono break-all select-all">
-                                {retrieveMnemonic()}
+                                {userId ? retrieveMnemonic(userId) : ''}
                               </p>
                             </div>
                           )}
