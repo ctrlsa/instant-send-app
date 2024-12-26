@@ -331,22 +331,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                     )
                   )}
 
-                  {isGeneratingLink ? (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setShowTempScreen(false)
-                        setIsCreatingEscrow(false)
-                        setEscrowSecret(null)
-                        setEscrowTx(null)
-                        setEscrowToken(null)
-                        setGeneratedLink(null)
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  ) : (
+                  {isGeneratingLink ? null : (
                     <Button
                       variant="outline"
                       className="w-full"
