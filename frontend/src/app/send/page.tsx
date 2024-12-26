@@ -44,7 +44,7 @@ const SendPage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen flex flex-col justify-end p-2 md:p-6"
+      className="min-h-screen flex flex-col justify-center p-4"
     >
       {walletSolana ? (
         <motion.div
@@ -60,17 +60,13 @@ const SendPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="overflow-hidden shadow-lg border flex-grow"
+          className=" border rounded-xl p-4"
         >
-          <CardContent className="p-6">
-            <div className="grid gap-8 md:grid-cols-2">
-              <WalletGenerator
-                user={currentUser}
-                wallet={walletSolana}
-                onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
-              />
-            </div>
-          </CardContent>
+          <WalletGenerator
+            user={currentUser}
+            wallet={walletSolana}
+            onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
+          />
         </motion.div>
       )}
     </motion.div>
