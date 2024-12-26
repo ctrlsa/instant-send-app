@@ -69,11 +69,13 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
     initializeDefaultAmount()
   }, [priceLoaded, selectedToken])
 
+  const [isCreatingEscrow, setIsCreatingEscrow] = useState(false)
   const [escrowSecret, setEscrowSecret] = useState<string | null>(null)
   const [escrowTx, setEscrowTx] = useState<string | null>(null)
   const [escrowToken, setEscrowToken] = useState<TokenWithPrice | null>(null)
-  const [isCreatingEscrow, setIsCreatingEscrow] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
+  const [showTempScreen, setShowTempScreen] = useState(false)
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false)
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null)
 
   const updateTokenBalances = useCallback(
     async (isRefreshAction = false) => {
@@ -129,13 +131,28 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
     }).format(amount)
   }
 
+  const getRedeemLink = () => {
+    if (!escrowSecret || !escrowTx || !escrowToken) return ''
+    if (process.env.NODE_ENV === 'development') {
+      return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+    } else {
+      return `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+    }
+  }
+
   const handleSend = async () => {
     if (!selectedToken || !sendAmount || !connection || !walletSolana) {
       toast.error('Please fill in all fields and ensure wallet is connected')
       return
     }
 
+    if (isCreatingEscrow) return // Prevent multiple sends while processing
+
     setIsCreatingEscrow(true)
+    setShowTempScreen(true)
+    setIsGeneratingLink(true)
+    setGeneratedLink(null)
+
     try {
       const secret = Math.random().toString(36).substring(2, 15)
       setEscrowSecret(secret)
@@ -153,10 +170,11 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       )
 
       setEscrowTx(tx)
-      toast.success('Transfer created successfully, share link with recipient')
-      setShowShareModal(true)
-
       await updateTokenBalances()
+
+      const link = getRedeemLink()
+      setGeneratedLink(link)
+      setIsGeneratingLink(false)
     } catch (error) {
       console.error('Error:', error)
       if (error instanceof Error) {
@@ -169,18 +187,9 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       } else {
         toast.error('An unknown error occurred. Please try again.')
       }
-    } finally {
+      setIsGeneratingLink(false)
       setIsCreatingEscrow(false)
-      setLoading(false)
-    }
-  }
-
-  const getRedeemLink = () => {
-    if (!escrowSecret || !escrowTx || !escrowToken) return ''
-    if (process.env.NODE_ENV === 'development') {
-      return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
-    } else {
-      return `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      setShowTempScreen(false)
     }
   }
 
@@ -237,14 +246,6 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
               <div className="space-y-4 pt-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Send {selectedToken.symbol}</h3>
-                  {/* <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => updateTokenBalances(true)}
-                    disabled={loading}
-                  >
-                    <RefreshCcw className={cn('h-4 w-4', loading && 'animate-spin')} />
-                  </Button> */}
                 </div>
 
                 <div className="space-y-4">
@@ -256,46 +257,110 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                       value={sendAmount}
                       onChange={(e) => setSendAmount(e.target.value)}
                       placeholder="Enter amount"
+                      disabled={isCreatingEscrow}
                     />
                   </div>
 
-                  <Button className="w-full py-4" onClick={handleSend}>
-                    <Send className="h-5 w-5 mr-2" />
+                  <Button className="w-full py-4" onClick={handleSend} disabled={isCreatingEscrow}>
+                    {isCreatingEscrow ? (
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5 mr-2" />
+                    )}
                     Send via Telegram
                   </Button>
-                  {escrowSecret && escrowTx && (
-                    <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Share Escrow Link</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Redeem Link</Label>
-                            <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
-                              {getRedeemLink()}
-                            </div>
-                          </div>
+                </div>
+              </div>
+            )}
 
-                          <Button
-                            className="w-full"
-                            variant="secondary"
-                            onClick={() => {
-                              const link = getRedeemLink()
-                              if (link) {
-                                utils.shareURL(link)
-                              }
-                            }}
-                          >
-                            <Send className="h-5 w-5 mr-2" />
-                            Share via Telegram
-                          </Button>
-                          <p className="text-sm text-muted-foreground text-center">
-                            Link will expire in 24 hours
-                          </p>
+            {showTempScreen && (
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-background p-6 rounded-lg max-w-sm w-full mx-4 space-y-6">
+                  <h3 className="text-lg font-medium text-center">
+                    {isGeneratingLink ? (
+                      <>
+                        Generating link for {sendAmount} {selectedToken?.symbol} transfer.
+                        <br />
+                        Forward this link to your friend
+                      </>
+                    ) : (
+                      <div className="space-y-4">
+                        Generated link for {sendAmount} {selectedToken?.symbol} transfer.
+                        <br />
+                        Forward this link to your friend
+                        <br />
+                        <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
+                          {getRedeemLink()}
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                        <p className="text-sm text-muted-foreground text-center">
+                          Link will expire in 24 hours
+                        </p>
+                        <Button
+                          className="w-full mt-4"
+                          variant="secondary"
+                          onClick={() => {
+                            const link = getRedeemLink()
+                            if (link) {
+                              utils.shareURL(link)
+                              // Clear states after manual share
+                              // setShowTempScreen(false)
+                              // setIsCreatingEscrow(false)
+                              // setEscrowSecret(null)
+                              // setEscrowTx(null)
+                              // setEscrowToken(null)
+                              // setGeneratedLink(null)
+                            }
+                          }}
+                        >
+                          <Send className="h-5 w-5 mr-2" />
+                          Share via Telegram
+                        </Button>
+                      </div>
+                    )}
+                  </h3>
+
+                  {isGeneratingLink ? (
+                    <div className="flex justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  ) : (
+                    generatedLink && (
+                      <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
+                        {generatedLink}
+                      </div>
+                    )
+                  )}
+
+                  {isGeneratingLink ? (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setShowTempScreen(false)
+                        setIsCreatingEscrow(false)
+                        setEscrowSecret(null)
+                        setEscrowTx(null)
+                        setEscrowToken(null)
+                        setGeneratedLink(null)
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setShowTempScreen(false)
+                        setIsCreatingEscrow(false)
+                        setEscrowSecret(null)
+                        setEscrowTx(null)
+                        setEscrowToken(null)
+                        setGeneratedLink(null)
+                      }}
+                    >
+                      Close
+                    </Button>
                   )}
                 </div>
               </div>
