@@ -233,6 +233,9 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                           <div className="font-medium">
                             {formatBalance(token.balance || 0, token)}
                           </div>
+                          <div className="text-xs text-muted-foreground">
+                            ${((token.balance || 0) * (token.usdPrice || 0)).toFixed(2)}
+                          </div>
                         </div>
                       </div>
                     </motion.div>
