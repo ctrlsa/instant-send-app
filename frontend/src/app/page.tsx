@@ -217,7 +217,7 @@ export default function Home() {
                     <h3 className="font-medium">{token.symbol}</h3>
                     <span className="bg-secondary rounded-3xl text-[9px] px-1">Solana</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[9px] text-muted-foreground">
                     {truncateAddress(walletSolana.publicKey)}
                   </p>
                 </div>
@@ -244,7 +244,6 @@ export default function Home() {
                   >
                     <QrCode className="h-5 w-5" />
                   </Button>
-
                   <Button
                     variant="secondary"
                     size="icon"
