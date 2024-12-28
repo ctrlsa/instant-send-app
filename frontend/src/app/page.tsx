@@ -280,6 +280,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      <div className="mt-6 space-y-4">{walletSolana && <RedeemEscrow />}</div>
     </motion.div>
   )
 }

@@ -37,7 +37,6 @@ export default function ActivityPage() {
       try {
         if (walletSolana && walletSolana.publicKey) {
           setLoading(true)
-          //   const connection = new Connection('https://rpc.ankr.com/solana_devnet')
           const connection = new Connection('https://api.devnet.solana.com')
           const pubKey = new PublicKey(walletSolana.publicKey)
 
@@ -47,12 +46,25 @@ export default function ActivityPage() {
             signatures.map(async (sig) => {
               const tx = await connection.getTransaction(sig.signature, { commitment: 'finalized' })
               const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
-              const preBalance = tx?.meta?.preBalances?.[0] ?? 0
-              const postBalance = tx?.meta?.postBalances?.[0] ?? 0
-              const fee = tx?.meta?.fee ?? 0
-              const amount = postBalance - preBalance // Exclude fee from the amount
 
+              // Get the index of our wallet in the accounts list
+              const accountIndex =
+                tx?.transaction.message.accountKeys.findIndex(
+                  (account) => account.toBase58() === walletSolana.publicKey
+                ) ?? -1
+
+              // Calculate the balance change for our account
+              const preBalance = tx?.meta?.preBalances?.[accountIndex] ?? 0
+              const postBalance = tx?.meta?.postBalances?.[accountIndex] ?? 0
+              const balanceChange = postBalance - preBalance
+              const fee = accountIndex === 0 ? (tx?.meta?.fee ?? 0) : 0 // Only subtract fee if we're the fee payer
+
+              // Calculate final amount including fee if we're the fee payer
+              const amount = balanceChange + fee
+
+              // If amount is positive, we received SOL. If negative, we sent SOL.
               const type = amount > 0 ? 'received' : 'sent'
+
               return {
                 signature: sig.signature,
                 date,
@@ -74,7 +86,6 @@ export default function ActivityPage() {
             tokenAccounts.value.map(async (accountInfo) => {
               const account = accountInfo.account.data.parsed.info
               if (account.mint === tokenList[1].mintAddress) {
-                // Replace with actual USDC mint address
                 const signatures = await connection.getSignaturesForAddress(
                   new PublicKey(accountInfo.pubkey)
                 )
@@ -84,12 +95,27 @@ export default function ActivityPage() {
                       commitment: 'finalized'
                     })
                     const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
-                    console.log(tx)
-                    const amount = tx?.meta?.postTokenBalances?.[1]?.uiTokenAmount?.uiAmount ?? 0
-                    if (Math.abs(amount).toFixed(2) === '0.00') {
-                      return null
-                    }
+
+                    // Find our token account in postTokenBalances
+                    const ourTokenAccountIndex =
+                      tx?.meta?.postTokenBalances?.findIndex(
+                        (balance) => balance.owner === walletSolana.publicKey
+                      ) ?? -1
+
+                    if (ourTokenAccountIndex === -1) return null
+
+                    const preBalance =
+                      tx?.meta?.preTokenBalances?.[ourTokenAccountIndex]?.uiTokenAmount?.uiAmount ??
+                      0
+                    const postBalance =
+                      tx?.meta?.postTokenBalances?.[ourTokenAccountIndex]?.uiTokenAmount
+                        ?.uiAmount ?? 0
+                    const amount = postBalance - preBalance
+
+                    if (Math.abs(amount) === 0) return null
+
                     const type = amount > 0 ? 'received' : 'sent'
+
                     return {
                       signature: sig.signature,
                       date,
