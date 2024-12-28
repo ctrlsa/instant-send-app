@@ -16,7 +16,7 @@ import { tokenList } from '@/utils/tokens'
 import { redeemEscrow } from '@/utils/solanaUtils'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { Button } from '@/components/ui/button'
-import { Wallet } from '@/utils/wallet'
+import { createMnemonic, generateWalletFromMnemonic, Wallet } from '@/utils/wallet'
 import WalletGenerator from '@/components/WalletGenerator'
 import Image from 'next/image'
 
@@ -47,6 +47,16 @@ export default function Home() {
     const { id, username, firstName, lastName } = initData.user
     return { id: id.toString(), username, name: `${firstName} ${lastName}` }
   }, [initData])
+
+  useEffect(() => {
+    if (!walletSolana && currentUser) {
+      const mnemonic = createMnemonic()
+      const newWallet = generateWalletFromMnemonic('501', mnemonic, 0)
+      if (newWallet) {
+        setWalletSolana(newWallet)
+      }
+    }
+  }, [walletSolana, currentUser, setWalletSolana])
 
   useEffect(() => {
     postEvent('web_app_setup_back_button', {
@@ -271,25 +281,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      <div className="mt-6 space-y-4">
-        {walletSolana && <RedeemEscrow />}
-
-        {!walletSolana && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className=" border rounded-xl p-4"
-          >
-            <WalletGenerator
-              user={currentUser}
-              wallet={walletSolana}
-              onWalletCreated={(wallet: Wallet) => setWalletSolana(wallet)}
-            />
-          </motion.div>
-        )}
-      </div>
     </motion.div>
   )
 }
