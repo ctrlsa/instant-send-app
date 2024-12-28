@@ -145,6 +145,11 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
       toast.error('Please fill in all fields and ensure wallet is connected')
       return
     }
+    const balance = await connection.getBalance(new PublicKey(walletSolana.publicKey))
+    if (balance < parseFloat(sendAmount) || balance === 0) {
+      toast.error('Insufficient balance. Please, top up')
+      return
+    }
 
     if (isCreatingEscrow) return // Prevent multiple sends while processing
 
