@@ -45,7 +45,11 @@ export default function ActivityPage() {
           const solTransactions = await Promise.all(
             signatures.map(async (sig) => {
               const tx = await connection.getTransaction(sig.signature, { commitment: 'finalized' })
-              const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
+              const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })
 
               // Get the index of our wallet in the accounts list
               const accountIndex =
@@ -94,7 +98,11 @@ export default function ActivityPage() {
                     const tx = await connection.getTransaction(sig.signature, {
                       commitment: 'finalized'
                     })
-                    const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString()
+                    const date = new Date((sig.blockTime || 0) * 1000).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })
 
                     // Find our token account in postTokenBalances
                     const ourTokenAccountIndex =
@@ -223,9 +231,9 @@ export default function ActivityPage() {
                   </div>
                   <div>
                     <div className="font-bold text-primary mb-1">
-                      {txn.type === 'received' ? 'Received payment' : 'Sent payment'}
+                      {txn.type === 'received' ? 'Received' : 'Sent'}
                     </div>
-                    <div className="text-sm text-muted-foreground">{txn.date}</div>
+                    <div className="text-xs text-muted-foreground">{txn.date}</div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
@@ -245,7 +253,7 @@ export default function ActivityPage() {
                     rel="noopener noreferrer"
                     className="text-xs text-primary hover:text-primary/80 transition-colors duration-200 flex items-center"
                   >
-                    View transaction
+                    Details
                     <ExternalLinkIcon className="w-3 h-3 ml-1" />
                   </a>
                 </div>
