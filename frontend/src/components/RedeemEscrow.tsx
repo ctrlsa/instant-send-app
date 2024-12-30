@@ -35,7 +35,7 @@ export const RedeemEscrow = () => {
       const isSol = token === 'SOL'
 
       if (!secret || !sender || token === undefined) {
-        throw new Error('Invalid redemption link')
+        throw new Error('Invalid receive link')
       }
 
       await redeemEscrow(
