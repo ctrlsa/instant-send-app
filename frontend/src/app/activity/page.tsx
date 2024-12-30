@@ -11,18 +11,22 @@ import {
   ExternalLinkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { tokenList } from '@/utils/tokens'
 import { Button } from '@/components/ui/button'
+import { getStoredEscrows } from '@/utils/solanaUtils'
 
 type SimpleTransaction = {
   signature?: string
   date?: string
   amount?: number
-  type?: 'sent' | 'received'
+  type?: 'sent' | 'received' | 'escrow'
   currency?: string
+  escrowSecret?: string
+  escrowStatus?: 'pending' | 'claimed'
 }
 
 export default function ActivityPage() {
@@ -39,6 +43,18 @@ export default function ActivityPage() {
           setLoading(true)
           const connection = new Connection('https://api.devnet.solana.com')
           const pubKey = new PublicKey(walletSolana.publicKey)
+
+          // Get stored escrow transactions
+          const storedEscrows = getStoredEscrows()
+          const escrowTransactions: SimpleTransaction[] = storedEscrows.map((escrow) => ({
+            signature: escrow.tx,
+            date: new Date(escrow.timestamp).toLocaleDateString(),
+            amount: Number(escrow.amount),
+            type: 'escrow',
+            currency: escrow.token,
+            escrowSecret: escrow.secret,
+            escrowStatus: 'pending'
+          }))
 
           // Fetch SOL transactions
           const signatures = await connection.getSignaturesForAddress(pubKey)
@@ -132,36 +148,25 @@ export default function ActivityPage() {
 
           // Flatten the USDC transactions array
           const flattenedUsdcTransactions = usdcTransactions.flat()
-          // Combine SOL and USDC transactions
+
+          // Combine all transactions
           setTransactions(
-            [...filteredSolTransactions, ...flattenedUsdcTransactions]
-              .filter(
-                (
-                  tx
-                ): tx is {
-                  signature: string
-                  date: string
-                  amount: string
-                  type: string
-                  currency: string
-                } => {
-                  if (!tx) return false
-                  return (
-                    typeof tx.signature === 'string' &&
-                    typeof tx.date === 'string' &&
-                    typeof tx.amount === 'string' &&
-                    typeof tx.type === 'string' &&
-                    typeof tx.currency === 'string'
-                  )
-                }
-              )
-              .map((tx) => ({
-                signature: tx?.signature,
-                date: tx?.date,
-                amount: Number(tx?.amount),
-                type: tx?.type as 'sent' | 'received',
-                currency: tx?.currency
-              }))
+            [...escrowTransactions, ...filteredSolTransactions, ...flattenedUsdcTransactions]
+              .filter((tx): tx is SimpleTransaction => {
+                if (!tx) return false
+                return (
+                  typeof tx.signature === 'string' &&
+                  typeof tx.date === 'string' &&
+                  typeof tx.amount === 'number' &&
+                  typeof tx.type === 'string' &&
+                  typeof tx.currency === 'string'
+                )
+              })
+              .sort((a, b) => {
+                const dateA = new Date(a.date).getTime()
+                const dateB = new Date(b.date).getTime()
+                return dateB - dateA
+              })
           )
         }
       } catch (error) {
@@ -182,6 +187,45 @@ export default function ActivityPage() {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
+  }
+
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'received':
+        return <ArrowDownIcon className="w-6 h-6 text-white" />
+      case 'sent':
+        return <ArrowUpIcon className="w-6 h-6 text-white" />
+      case 'escrow':
+        return <Lock className="w-6 h-6 text-white" />
+      default:
+        return <ArrowUpIcon className="w-6 h-6 text-white" />
+    }
+  }
+
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'received':
+        return 'from-green-400 to-emerald-600'
+      case 'sent':
+        return 'from-red-400 to-rose-600'
+      case 'escrow':
+        return 'from-blue-400 to-blue-600'
+      default:
+        return 'from-gray-400 to-gray-600'
+    }
+  }
+
+  const getTransactionLabel = (txn: SimpleTransaction) => {
+    switch (txn.type) {
+      case 'received':
+        return 'Received payment'
+      case 'sent':
+        return 'Sent payment'
+      case 'escrow':
+        return 'Escrow transfer'
+      default:
+        return 'Transaction'
+    }
   }
 
   return (
@@ -209,23 +253,16 @@ export default function ActivityPage() {
               >
                 <div className="flex items-center space-x-4">
                   <div
-                    className={`p-2 rounded-full ${
-                      txn.type === 'received'
-                        ? 'bg-gradient-to-br from-green-400 to-emerald-600'
-                        : 'bg-gradient-to-br from-red-400 to-rose-600'
-                    }`}
+                    className={`p-2 rounded-full bg-gradient-to-br ${getTransactionColor(txn.type!)}`}
                   >
-                    {txn.type === 'received' ? (
-                      <ArrowDownIcon className="w-6 h-6 text-white" />
-                    ) : (
-                      <ArrowUpIcon className="w-6 h-6 text-white" />
-                    )}
+                    {getTransactionIcon(txn.type!)}
                   </div>
                   <div>
-                    <div className="font-bold text-primary mb-1">
-                      {txn.type === 'received' ? 'Received payment' : 'Sent payment'}
-                    </div>
+                    <div className="font-bold text-primary mb-1">{getTransactionLabel(txn)}</div>
                     <div className="text-sm text-muted-foreground">{txn.date}</div>
+                    {txn.type === 'escrow' && (
+                      <div className="text-xs text-blue-500">Status: {txn.escrowStatus}</div>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
@@ -233,7 +270,9 @@ export default function ActivityPage() {
                     className={`font-bold mb-1 ${
                       txn.type === 'received'
                         ? 'text-green-500 dark:text-green-400'
-                        : 'text-red-500 dark:text-red-400'
+                        : txn.type === 'escrow'
+                          ? 'text-blue-500 dark:text-blue-400'
+                          : 'text-red-500 dark:text-red-400'
                     }`}
                   >
                     {txn.type === 'received' ? '+' : '-'}

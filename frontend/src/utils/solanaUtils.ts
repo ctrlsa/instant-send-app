@@ -502,3 +502,28 @@ export async function redeemEscrow(
   const txSignature = await tx.rpc()
   console.log('Transaction Signature:', txSignature)
 }
+
+type StoredEscrow = {
+  secret: string
+  sender: string
+  token: string
+  amount: string
+  timestamp: number
+  tx: string
+}
+
+export const storeEscrowLink = (escrowData: StoredEscrow) => {
+  const existingEscrows = JSON.parse(localStorage.getItem('escrowLinks') || '[]')
+  existingEscrows.push(escrowData)
+  localStorage.setItem('escrowLinks', JSON.stringify(existingEscrows))
+}
+
+export const getStoredEscrows = (): StoredEscrow[] => {
+  return JSON.parse(localStorage.getItem('escrowLinks') || '[]')
+}
+
+export const removeEscrowLink = (secret: string) => {
+  const existingEscrows = getStoredEscrows()
+  const filteredEscrows = existingEscrows.filter((escrow) => escrow.secret !== secret)
+  localStorage.setItem('escrowLinks', JSON.stringify(filteredEscrows))
+}

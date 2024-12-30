@@ -9,11 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { initUtils } from '@telegram-apps/sdk'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { redeemEscrow } from '@/utils/solanaUtils'
 
 import { toast } from 'sonner'
 import { useWallet } from '@/contexts/WalletContext'
 import { tokenList } from '@/utils/tokens'
-import { fetchTokenBalances, Token, initializeEscrow, fetchTokenPrices } from '@/utils/solanaUtils'
+import {
+  fetchTokenBalances,
+  Token,
+  initializeEscrow,
+  fetchTokenPrices,
+  storeEscrowLink,
+  getStoredEscrows,
+  removeEscrowLink
+} from '@/utils/solanaUtils'
 import { cn } from '@/lib/utils'
 import { BN } from '@coral-xyz/anchor'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -76,6 +85,46 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const [showTempScreen, setShowTempScreen] = useState(false)
   const [isGeneratingLink, setIsGeneratingLink] = useState(false)
   const [generatedLink, setGeneratedLink] = useState<string | null>(null)
+
+  interface StoredEscrow {
+    token: string
+    sender: string
+    secret: string
+    amount: string
+    timestamp: number
+    tx: string
+  }
+
+  const [activeEscrows, setActiveEscrows] = useState<StoredEscrow[]>([])
+
+  useEffect(() => {
+    setActiveEscrows(getStoredEscrows())
+  }, [])
+
+  const handleClaimBack = async (escrow: StoredEscrow) => {
+    if (!connection || !walletSolana) return
+
+    try {
+      await redeemEscrow(
+        connection,
+        walletSolana,
+        escrow.token === 'SOL'
+          ? null
+          : tokenList.find((t) => t.symbol === escrow.token)?.mintAddress || null,
+        escrow.sender,
+        escrow.secret,
+        escrow.token === 'SOL'
+      )
+
+      removeEscrowLink(escrow.secret)
+      setActiveEscrows(getStoredEscrows())
+      toast.success('Successfully claimed back funds')
+      await updateTokenBalances(true)
+    } catch (error) {
+      console.error('Error claiming back funds:', error)
+      toast.error('Failed to claim back funds')
+    }
+  }
 
   const updateTokenBalances = useCallback(
     async (isRefreshAction = false) => {
@@ -174,6 +223,16 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
         selectedToken.symbol === 'SOL'
       )
 
+      // Store escrow information in localStorage
+      storeEscrowLink({
+        secret,
+        sender: walletSolana.publicKey,
+        token: selectedToken.symbol,
+        amount: sendAmount,
+        timestamp: Date.now(),
+        tx
+      })
+
       setEscrowTx(tx)
       await updateTokenBalances()
 
@@ -248,6 +307,37 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">No tokens found</div>
+            )}
+
+            {activeEscrows.length > 0 && (
+              <div className="space-y-4 mt-6">
+                <h3 className="text-lg font-semibold">Active Transfers</h3>
+                <div className="space-y-3">
+                  {activeEscrows.map((escrow) => (
+                    <div key={escrow.secret} className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <div>
+                          <span className="font-medium">
+                            {escrow.amount} {escrow.token}
+                          </span>
+                          <span className="text-sm text-muted-foreground ml-2">
+                            ({new Date(escrow.timestamp).toLocaleDateString()})
+                          </span>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleClaimBack(escrow)}
+                        >
+                          <Lock className="h-4 w-4 mr-2" />
+                          Claim Back
+                        </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground break-all">TX: {escrow.tx}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {selectedToken && (
