@@ -16,6 +16,7 @@ import {
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { tokenList } from '@/utils/tokens'
 import { Button } from '@/components/ui/button'
+import { redeemEscrow } from '@/utils/solanaUtils'
 
 type SimpleTransaction = {
   signature?: string
@@ -27,7 +28,10 @@ type SimpleTransaction = {
 
 export default function ActivityPage() {
   const { walletSolana } = useWallet()
+  const [isRedeeming, setIsRedeeming] = useState(false)
   const [transactions, setTransactions] = useState<SimpleTransaction[]>([])
+  const connection = new Connection('https://api.devnet.solana.com')
+
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 4
@@ -37,7 +41,9 @@ export default function ActivityPage() {
       try {
         if (walletSolana && walletSolana.publicKey) {
           setLoading(true)
-          const connection = new Connection('https://api.devnet.solana.com')
+          const connection = new Connection(
+            'https://solana-devnet.g.alchemy.com/v2/vBKTr4oFNIbzw5mEM818uNLW4BIlkbNp'
+          )
           const pubKey = new PublicKey(walletSolana.publicKey)
 
           // Fetch SOL transactions
@@ -191,6 +197,54 @@ export default function ActivityPage() {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage)
   }
+  const handleRedeem = async (secret: string, sender: string, token: string, signature: string) => {
+    console.log(secret, sender, token)
+    if (!walletSolana) {
+      toast.success('Create a wallet to receive tokens')
+      return
+    }
+    if (walletSolana) {
+      const balance = await connection.getBalance(new PublicKey(walletSolana.publicKey))
+      if (balance === 0) {
+        toast.error('Insufficient balance. Please, top up')
+        return
+      }
+    }
+    try {
+      setIsRedeeming(true)
+      await redeemEscrow(
+        connection,
+        walletSolana,
+        token === 'SOL' ? tokenList[0].mintAddress : tokenList[1].mintAddress,
+        sender,
+        secret,
+        token === 'SOL'
+      )
+      toast.success('Received tokens successfully! Check your wallet.')
+      localStorage.removeItem(signature)
+    } catch (error) {
+      console.error(error)
+      toast.error('Invalid link or network error')
+    } finally {
+      setIsRedeeming(false)
+    }
+  }
+  const handleReceiveBack = (signature: string) => {
+    const storedLink = localStorage.getItem(signature)
+    if (storedLink) {
+      const urlObj = new URL(storedLink)
+      const [secret, sender, token] = urlObj.searchParams.get('startapp')?.split('__') || []
+      // Logic to handle receiving back the transaction
+      if (secret && sender && token) {
+        handleRedeem(secret, sender, token, signature)
+      }
+
+      console.log(`Receive back for transaction: ${signature}`)
+      // You can add more logic here to process the receive back action
+    } else {
+      toast.error('No stored link found for this transaction')
+    }
+  }
 
   return (
     <motion.div
@@ -257,6 +311,17 @@ export default function ActivityPage() {
                     <ExternalLinkIcon className="w-3 h-3 ml-1" />
                   </a>
                 </div>
+                {txn.type === 'sent' && localStorage.getItem(txn.signature ?? '') && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={isRedeeming}
+                    onClick={() => handleReceiveBack(txn.signature ?? '')}
+                    className="ml-2"
+                  >
+                    {isRedeeming ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refund'}
+                  </Button>
+                )}
               </motion.div>
             ))}
           </div>

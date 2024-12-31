@@ -134,9 +134,13 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const getRedeemLink = () => {
     if (!escrowSecret || !escrowTx || !escrowToken) return ''
     if (process.env.NODE_ENV === 'development') {
-      return `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      const link = `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      localStorage.setItem(escrowTx, link)
+      return link
     } else {
-      return `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      const link = `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      localStorage.setItem(escrowTx, link)
+      return link
     }
   }
 
@@ -176,8 +180,13 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
 
       setEscrowTx(tx)
       await updateTokenBalances()
-
+      console.log('transaction', tx)
       const link = getRedeemLink()
+      console.log('link', link)
+      if (link && tx) {
+        console.log('Storing in localStorage:', tx, link)
+        localStorage.setItem(tx, link)
+      }
       setGeneratedLink(link)
       setIsGeneratingLink(false)
     } catch (error) {
