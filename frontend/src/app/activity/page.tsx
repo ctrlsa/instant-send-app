@@ -301,38 +301,42 @@ export default function ActivityPage() {
                     <div className="text-xs text-muted-foreground">{txn.date}</div>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <div
-                    className={`font-bold mb-1 ${
-                      txn.type === 'received'
-                        ? 'text-green-500 dark:text-green-400'
-                        : 'text-red-500 dark:text-red-400'
-                    }`}
-                  >
-                    {txn.type === 'received' ? '+' : '-'}
-                    {txn.amount} {txn.currency}
-                  </div>
-                  <a
-                    href={`https://explorer.solana.com/tx/${txn.signature}?cluster=devnet`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:text-primary/80 transition-colors duration-200 flex items-center"
-                  >
-                    Details
-                    <ExternalLinkIcon className="w-3 h-3 ml-1" />
-                  </a>
-                </div>
                 {txn.type === 'sent' && localStorage.getItem(txn.signature ?? '') && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={isRedeeming}
-                    onClick={() => handleReceiveBack(txn.signature ?? '')}
-                    className="ml-2"
-                  >
-                    {isRedeeming ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refund'}
-                  </Button>
+                  <div className="flex items-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isRedeeming}
+                      onClick={() => handleReceiveBack(txn.signature ?? '')}
+                      className="min-w-[80px] border-primary/20 hover:bg-primary/10"
+                    >
+                      {isRedeeming ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refund'}
+                    </Button>
+                  </div>
                 )}
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-end justify-center">
+                    <div
+                      className={`font-bold mb-1 ${
+                        txn.type === 'received'
+                          ? 'text-green-500 dark:text-green-400'
+                          : 'text-red-500 dark:text-red-400'
+                      }`}
+                    >
+                      {txn.type === 'received' ? '+' : '-'}
+                      {txn.amount} {txn.currency}
+                    </div>
+                    <a
+                      href={`https://explorer.solana.com/tx/${txn.signature}?cluster=devnet`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:text-primary/80 transition-colors duration-200 flex items-center"
+                    >
+                      Details
+                      <ExternalLinkIcon className="w-3 h-3 ml-1" />
+                    </a>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
