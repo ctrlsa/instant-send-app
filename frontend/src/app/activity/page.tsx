@@ -57,28 +57,37 @@ export default function ActivityPage() {
                 year: 'numeric'
               })
 
-              // Get the index of our wallet in the accounts list
-              const accountIndex =
-                tx?.transaction.message.accountKeys.findIndex(
-                  (account) => account.toBase58() === walletSolana.publicKey
-                ) ?? -1
+              if (!tx) return null
 
-              // Calculate the balance change for our account
-              const preBalance = tx?.meta?.preBalances?.[accountIndex] ?? 0
-              const postBalance = tx?.meta?.postBalances?.[accountIndex] ?? 0
-              const balanceChange = postBalance - preBalance
-              const fee = accountIndex === 0 ? (tx?.meta?.fee ?? 0) : 0 // Only subtract fee if we're the fee payer
+              // For SOL transactions, find if we're the sender or receiver
+              const accountKeys = tx.transaction.message.accountKeys
+              const ourPubKey = walletSolana.publicKey
+              const ourAccountIndex = accountKeys.findIndex(
+                (account) => account.toBase58() === ourPubKey
+              )
 
-              // Calculate final amount including fee if we're the fee payer
-              const amount = balanceChange + fee
+              if (ourAccountIndex === -1) return null
 
-              // If amount is positive, we received SOL. If negative, we sent SOL.
+              // Calculate the net SOL change for our account
+              const preBalance = tx.meta?.preBalances?.[ourAccountIndex] ?? 0
+              const postBalance = tx.meta?.postBalances?.[ourAccountIndex] ?? 0
+              let amount = (postBalance - preBalance) / 1e9 // Convert lamports to SOL
+
+              // If we're the fee payer (index 0), subtract the fee
+              if (ourAccountIndex === 0) {
+                amount -= (tx.meta?.fee ?? 0) / 1e9
+              }
+
+              // Skip transactions with zero amount
+              if (amount === 0) return null
+
               const type = amount > 0 ? 'received' : 'sent'
 
               return {
                 signature: sig.signature,
                 date,
-                amount: (Math.abs(amount) / 1e9).toFixed(4), // Convert lamports to SOL
+                blockTime: sig.blockTime || 0,
+                amount: Math.abs(amount).toFixed(4),
                 type,
                 currency: 'SOL'
               }
@@ -110,29 +119,31 @@ export default function ActivityPage() {
                       year: 'numeric'
                     })
 
-                    // Find our token account in postTokenBalances
-                    const ourTokenAccountIndex =
-                      tx?.meta?.postTokenBalances?.findIndex(
+                    if (!tx?.meta?.preTokenBalances || !tx?.meta?.postTokenBalances) return null
+
+                    // Check all token balances to find our transactions
+                    const ourPreBalance =
+                      tx.meta.preTokenBalances.find(
                         (balance) => balance.owner === walletSolana.publicKey
-                      ) ?? -1
+                      )?.uiTokenAmount.uiAmount ?? 0
 
-                    if (ourTokenAccountIndex === -1) return null
+                    const ourPostBalance =
+                      tx.meta.postTokenBalances.find(
+                        (balance) => balance.owner === walletSolana.publicKey
+                      )?.uiTokenAmount.uiAmount ?? 0
 
-                    const preBalance =
-                      tx?.meta?.preTokenBalances?.[ourTokenAccountIndex]?.uiTokenAmount?.uiAmount ??
-                      0
-                    const postBalance =
-                      tx?.meta?.postTokenBalances?.[ourTokenAccountIndex]?.uiTokenAmount
-                        ?.uiAmount ?? 0
-                    const amount = postBalance - preBalance
+                    // Calculate the change in our balance
+                    const amount = ourPostBalance - ourPreBalance
 
-                    if (Math.abs(amount) === 0) return null
+                    // Skip transactions with zero amount
+                    if (amount === 0) return null
 
                     const type = amount > 0 ? 'received' : 'sent'
 
                     return {
                       signature: sig.signature,
                       date,
+                      blockTime: sig.blockTime || 0,
                       amount: Math.abs(amount).toFixed(2),
                       type,
                       currency: 'USDC'
@@ -144,38 +155,38 @@ export default function ActivityPage() {
             })
           )
 
-          // Flatten the USDC transactions array
-          const flattenedUsdcTransactions = usdcTransactions.flat()
-          // Combine SOL and USDC transactions
+          // Flatten the USDC transactions array and remove nulls
+          const flattenedUsdcTransactions = usdcTransactions
+            .flat()
+            .filter((tx): tx is NonNullable<typeof tx> => tx !== null)
+
+          // Get signatures of USDC transactions to filter out their SOL gas transactions
+          const usdcSignatures = new Set(flattenedUsdcTransactions.map((tx) => tx.signature))
+
+          // Filter SOL transactions, removing those that are just gas fees for USDC transfers
+          const filteredSolTransactionsWithoutGas = filteredSolTransactions.filter(
+            (tx) => !usdcSignatures.has(tx.signature)
+          )
+
+          // Combine SOL and USDC transactions and sort by date and block time
+          const combinedTransactions = [
+            ...filteredSolTransactionsWithoutGas,
+            ...flattenedUsdcTransactions
+          ]
+            .filter((tx) => tx !== null)
+            .sort((a, b) => {
+              // First compare by block time (most recent first)
+              return b.blockTime - a.blockTime
+            })
+
           setTransactions(
-            [...filteredSolTransactions, ...flattenedUsdcTransactions]
-              .filter(
-                (
-                  tx
-                ): tx is {
-                  signature: string
-                  date: string
-                  amount: string
-                  type: string
-                  currency: string
-                } => {
-                  if (!tx) return false
-                  return (
-                    typeof tx.signature === 'string' &&
-                    typeof tx.date === 'string' &&
-                    typeof tx.amount === 'string' &&
-                    typeof tx.type === 'string' &&
-                    typeof tx.currency === 'string'
-                  )
-                }
-              )
-              .map((tx) => ({
-                signature: tx?.signature,
-                date: tx?.date,
-                amount: Number(tx?.amount),
-                type: tx?.type as 'sent' | 'received',
-                currency: tx?.currency
-              }))
+            combinedTransactions.map((tx) => ({
+              signature: tx.signature,
+              date: tx.date,
+              amount: Number(tx.amount),
+              type: tx.type as 'sent' | 'received',
+              currency: tx.currency
+            }))
           )
         }
       } catch (error) {
