@@ -138,7 +138,7 @@ export default function Home() {
   useEffect(() => {
     if (!initData) return
     if (initData?.startParam) {
-      const [secret, sender, token] = initData?.startParam?.split('__')
+      const [secret, sender, token] = initData?.startParam?.split('_')
       if (secret && sender && token) {
         handleRedeem(secret, sender, token)
       }

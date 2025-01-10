@@ -134,11 +134,11 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
   const getRedeemLink = () => {
     if (!escrowSecret || !escrowTx || !escrowToken) return ''
     if (process.env.NODE_ENV === 'development') {
-      const link = `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      const link = `https://t.me/InstantSendTestBot/InstantSendLocalTest?startapp=${escrowSecret}_${walletSolana?.publicKey}_${escrowToken.symbol}`
       localStorage.setItem(escrowTx, link)
       return link
     } else {
-      const link = `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}__${walletSolana?.publicKey}__${escrowToken.symbol}`
+      const link = `https://t.me/InstantSendAppBot/InstantSendApp?startapp=${escrowSecret}_${walletSolana?.publicKey}_${escrowToken.symbol}`
       localStorage.setItem(escrowTx, link)
       return link
     }

@@ -244,7 +244,7 @@ export default function ActivityPage() {
     const storedLink = localStorage.getItem(signature)
     if (storedLink) {
       const urlObj = new URL(storedLink)
-      const [secret, sender, token] = urlObj.searchParams.get('startapp')?.split('__') || []
+      const [secret, sender, token] = urlObj.searchParams.get('startapp')?.split('_') || []
       // Logic to handle receiving back the transaction
       if (secret && sender && token) {
         handleRedeem(secret, sender, token, signature)
