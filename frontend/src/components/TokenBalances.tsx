@@ -278,11 +278,15 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                     />
                   </div>
 
-                  <Button className="w-full py-4" onClick={handleSend} disabled={isCreatingEscrow}>
+                  <Button
+                    className="w-full py-6 text-lg font-semibold bg-gradient-to-r shadow-lg hover:shadow-xl transition-all duration-300 border-2 "
+                    onClick={handleSend}
+                    disabled={isCreatingEscrow}
+                  >
                     {isCreatingEscrow ? (
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      <Loader2 className="h-6 w-6 mr-3 animate-spin" />
                     ) : (
-                      <Send className="h-5 w-5 mr-2" />
+                      <Send className="h-6 w-6 mr-3" />
                     )}
                     Forward via Telegram
                   </Button>
@@ -313,23 +317,16 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                           Link will expire in 24 hours
                         </p>
                         <Button
-                          className="w-full mt-4"
-                          variant="secondary"
+                          className="w-full py-6 text-lg font-semibold bg-gradient-to-r shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-blue-400/20"
+                          variant="default"
                           onClick={() => {
                             const link = getRedeemLink()
                             if (link) {
                               utils.shareURL(link)
-                              // Clear states after manual share
-                              // setShowTempScreen(false)
-                              // setIsCreatingEscrow(false)
-                              // setEscrowSecret(null)
-                              // setEscrowTx(null)
-                              // setEscrowToken(null)
-                              // setGeneratedLink(null)
                             }
                           }}
                         >
-                          <Send className="h-5 w-5 mr-2" />
+                          <Send className="h-6 w-6 mr-3" />
                           Forward via Telegram
                         </Button>
                       </div>
