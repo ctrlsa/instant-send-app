@@ -296,15 +296,15 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                   <h3 className="text-lg font-medium text-center">
                     {isGeneratingLink ? (
                       <>
-                        Generating link for {sendAmount} {selectedToken?.symbol} transfer.
                         <br />
-                        Forward this link to your friend
+                        Forward this link to your friend to transfer {sendAmount}{' '}
+                        {selectedToken?.symbol}
                       </>
                     ) : (
                       <div className="space-y-4">
-                        Generated link for {sendAmount} {selectedToken?.symbol} transfer.
                         <br />
-                        Forward this link to your friend
+                        Forward this link to your friend to transfer {sendAmount}{' '}
+                        {selectedToken?.symbol}
                         <br />
                         <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
                           {getRedeemLink()}
