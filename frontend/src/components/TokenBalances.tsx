@@ -284,7 +284,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                     ) : (
                       <Send className="h-5 w-5 mr-2" />
                     )}
-                    Send via Telegram
+                    Forward via Telegram
                   </Button>
                 </div>
               </div>
@@ -330,7 +330,7 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                           }}
                         >
                           <Send className="h-5 w-5 mr-2" />
-                          Share via Telegram
+                          Forward via Telegram
                         </Button>
                       </div>
                     )}
