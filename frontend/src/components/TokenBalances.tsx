@@ -310,7 +310,14 @@ export default function TokenBalances({ contacts, defaultToken }: TokenBalancesP
                         Forward this link to your friend to transfer {sendAmount}{' '}
                         {selectedToken?.symbol}
                         <br />
-                        <div className="p-3 bg-muted rounded-md break-all text-sm font-mono">
+                        <div
+                          className="p-3 bg-muted rounded-md break-all text-sm font-mono cursor-pointer"
+                          onClick={() => {
+                            const link = getRedeemLink()
+                            navigator.clipboard.writeText(link)
+                            toast.success('Copied')
+                          }}
+                        >
                           {getRedeemLink()}
                         </div>
                         <p className="text-sm text-muted-foreground text-center">
